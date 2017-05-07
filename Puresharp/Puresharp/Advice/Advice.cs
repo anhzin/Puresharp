@@ -63,7 +63,7 @@ namespace Puresharp
         /// Create an advice, a way to decorate.
         /// </summary>
         /// <param name="decorate">Delegate use to decorate a method : Func(MethodBase = [base method to decorate], IntPtr = [pointer to base method]) return replacing method</param>
-        public Advice(Func<MethodBase, IntPtr, MethodInfo> decorate)
+        internal Advice(Func<MethodBase, IntPtr, MethodInfo> decorate)
         {
             this.m_Decorate = decorate;
         }
@@ -72,7 +72,7 @@ namespace Puresharp
         /// Create an advice, a way to decorate.
         /// </summary>
         /// <param name="decorate">Delegate use to decorate a method : Func(MethodBase = [base method to decorate]) return replacing method</param>
-        public Advice(Func<MethodBase, MethodInfo> decorate)
+        internal Advice(Func<MethodBase, MethodInfo> decorate)
         {
             this.m_Decorate = new Func<MethodBase, IntPtr, MethodInfo>((_Method, _Pointer) => decorate(_Method));
         }
@@ -81,7 +81,7 @@ namespace Puresharp
         /// Create an advice with a specific replacing method.
         /// </summary>
         /// <param name="method">Replacing method</param>
-        public Advice(MethodInfo method)
+        internal Advice(MethodInfo method)
         {
             this.m_Decorate = new Func<MethodBase, IntPtr, MethodInfo>((_Method, _Pointer) => method);
         }
