@@ -1,0 +1,12 @@
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      Puresharper
+    </BuildDependsOn>
+  </PropertyGroup>
+  <Target Name="Puresharper">
+    <Exec Command="&quot;$(SolutionDir)packages\Puresharper.0.0.0\build\Puresharper.exe&quot; &quot;$(ProjectPath)&quot; &quot;$(Configuration)&quot;" />
+  </Target>
+</Project>
