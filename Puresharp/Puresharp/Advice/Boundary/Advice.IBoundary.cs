@@ -9,7 +9,7 @@ namespace Puresharp
         {
             void Method(MethodBase method, ParameterInfo[] signature);
             void Instance<T>(T instance);
-            void Argument<T>(int index, ref T value);
+            void Argument<T>(int index, ParameterInfo parameter, ref T value);
             void Begin();
             void Continue();
             void Yield();

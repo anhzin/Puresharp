@@ -16,7 +16,7 @@ namespace Puresharp
         /// Void.
         /// </summary>
         static public readonly Type Void = typeof(void);
-
+        
         static private IEnumerable<Type> Lineage(this Type type)
         {
             var _type = type;
