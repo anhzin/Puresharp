@@ -97,4 +97,11 @@ namespace Puresharp
             return this.m_Decorate(method, pointer);
         }
     }
+
+    /// <summary>
+    /// Extension for advising.
+    /// </summary>
+    static public partial class __Advice
+    {
+    }
 }

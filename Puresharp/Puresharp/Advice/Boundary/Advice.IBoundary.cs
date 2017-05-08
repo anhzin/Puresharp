@@ -7,10 +7,11 @@ namespace Puresharp
     {
         public interface IBoundary : IDisposable
         {
+            void Method(MethodBase method, ParameterInfo[] signature);
             void Instance<T>(T instance);
-            void Runtime<T>(int index, ref T value);
-            void Invoke();
-            void Resume();
+            void Argument<T>(int index, ref T value);
+            void Begin();
+            void Continue();
             void Yield();
             void Return();
             void Throw(ref Exception exception);

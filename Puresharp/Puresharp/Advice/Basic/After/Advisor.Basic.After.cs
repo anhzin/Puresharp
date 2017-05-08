@@ -96,7 +96,7 @@ namespace Puresharp
             {
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 _body.DeclareLocal(Runtime<bool>.Type);
                 var _realized = _body.DefineLabel();
@@ -159,7 +159,7 @@ namespace Puresharp
             {
                 var _signature = _Method.Signature();
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 _body.DeclareLocal(Runtime<bool>.Type);
                 var _realized = _body.DefineLabel();

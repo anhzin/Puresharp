@@ -97,7 +97,7 @@ namespace Puresharp
                 foreach (var _type in Aspect.Explore().SelectMany(Aspect.Explore))
                 {
                     if (_type.ContainsGenericParameters) { continue; }
-                    foreach (var _constructor in _type.GetConstructors())
+                    foreach (var _constructor in _type.Constructors())
                     {
                         if (_constructor.IsStatic) { continue; }
                         if (_constructor.IsAbstract) { continue; }

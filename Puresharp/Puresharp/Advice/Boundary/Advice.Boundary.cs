@@ -7,19 +7,23 @@ namespace Puresharp
     {
         public partial class Boundary : Advice.IBoundary
         {
+            virtual public void Method(MethodBase method, ParameterInfo[] signature)
+            {
+            }
+
             virtual public void Instance<T>(T instance)
             {
             }
 
-            virtual public void Runtime<T>(int index, ref T value)
+            virtual public void Argument<T>(int index, ref T value)
             {
             }
 
-            virtual public void Invoke()
+            virtual public void Begin()
             {
             }
 
-            virtual public void Resume()
+            virtual public void Continue()
             {
             }
 

@@ -25,7 +25,7 @@ namespace Puresharp
                 if (advice == null) { return null; }
                 if (advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 if (_type == Runtime.Void)
                 {
@@ -75,7 +75,7 @@ namespace Puresharp
                 if (_advice == null) { return null; }
                 if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 if (_type == Runtime.Void)
                 {
@@ -127,7 +127,7 @@ namespace Puresharp
                 if (_advice == null) { return null; }
                 if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 if (_type == Runtime.Void)
                 {

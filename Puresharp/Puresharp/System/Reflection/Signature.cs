@@ -14,6 +14,16 @@ namespace Puresharp
             return signature == null ? null : signature.m_Signature;
         }
 
+        static public bool operator ==(Signature left, Signature right)
+        {
+            return object.Equals(left, right);
+        }
+
+        static public bool operator !=(Signature left, Signature right)
+        {
+            return !object.Equals(left, right);
+        }
+
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private readonly Collection<Type> m_Signature;
         public readonly Type Instance;

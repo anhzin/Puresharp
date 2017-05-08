@@ -24,7 +24,7 @@ namespace Puresharp
                 if (advice == null) { return null; }
                 if (advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 _body.Emit(_signature, false);
                 _body.Emit(_Pointer, _type, _signature);
@@ -51,7 +51,7 @@ namespace Puresharp
                 if (_advice == null) { return null; }
                 if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 _body.Emit(_signature, false);
                 _body.Emit(_Pointer, _type, _signature);
@@ -81,7 +81,7 @@ namespace Puresharp
                     var _advice = _signature.Instance == null ? advice(null, _parameters, null) : advice(_parameters[0], _parameters.Skip(1), null);
                     if (_advice == null) { return null; }
                     if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
-                    var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                    var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                     var _body = _method.GetILGenerator();
                     _body.Emit(_signature, false);
                     _body.Emit(_Pointer, _type, _signature);
@@ -97,7 +97,7 @@ namespace Puresharp
                     var _advice = _signature.Instance == null ? advice(null, _parameters, _return) : advice(_parameters[0], _parameters.Skip(1), _return);
                     if (_advice == null) { return null; }
                     if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
-                    var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                    var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                     var _body = _method.GetILGenerator();
                     _body.Emit(_signature, false);
                     _body.Emit(_Pointer, _type, _signature);

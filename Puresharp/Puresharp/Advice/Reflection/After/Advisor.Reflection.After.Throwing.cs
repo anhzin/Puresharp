@@ -18,7 +18,7 @@ namespace Puresharp
             {
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
-                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.DeclaringType, true);
+                var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
                 var _body = _method.GetILGenerator();
                 if (_type == Runtime.Void)
                 {
