@@ -40,7 +40,6 @@ namespace Puresharp
             var _signature = method.Signature();
             var _method = type.DefineMethod(method.Name, MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard, method.ReturnType, _signature);
             var _body = _method.GetILGenerator();
-            //_body.Emit(OpCodes.Ldarg_0);
             _body.Emit(_signature, false);
             _body.Emit(OpCodes.Callvirt, method);
             _body.Emit(OpCodes.Ret);
