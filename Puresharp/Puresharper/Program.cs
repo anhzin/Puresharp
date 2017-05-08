@@ -278,7 +278,11 @@ namespace Puresharper
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _state));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldc_I4_0));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Bge, _resume));
-                //TODO method!
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Runtime<MethodBase>.Value, Runtime<ParameterInfo[]>.Value))))));
                 if (_instance != null)
                 {
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
