@@ -15,7 +15,7 @@ namespace Puresharp
             {
             }
 
-            virtual public void Argument<T>(int index, ref T value)
+            virtual public void Argument<T>(ParameterInfo parameter, ref T value)
             {
             }
 
