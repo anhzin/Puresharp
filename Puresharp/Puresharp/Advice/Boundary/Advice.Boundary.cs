@@ -31,23 +31,23 @@ namespace Puresharp
             {
             }
 
-            public void Return()
+            virtual public void Return()
             {
             }
 
-            public void Throw(ref Exception exception)
+            virtual public void Throw(ref Exception exception)
             {
             }
 
-            public void Return<T>(ref T value)
+            virtual public void Return<T>(ref T value)
             {
             }
 
-            public void Throw<T>(ref Exception exception, ref T value)
+            virtual public void Throw<T>(ref Exception exception, ref T value)
             {
             }
 
-            public void Dispose()
+            virtual public void Dispose()
             {
             }
         }

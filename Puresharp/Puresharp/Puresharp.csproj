@@ -46,8 +46,10 @@
   <ItemGroup>
     <Compile Include="Advice\Advice.cs" />
     <Compile Include="Advice\Boundary\Advice.Boundary.cs" />
-    <Compile Include="Advice\Boundary\Advice.Boundary.Factory.cs" />
-    <Compile Include="Advice\Boundary\Advice.Boundary.IFactory.cs" />
+    <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.Factory.cs" />
+    <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.cs" />
+    <Compile Include="Advice\Boundary\Factory\Advice.Boundary.Factory.cs" />
+    <Compile Include="Advice\Boundary\Factory\Advice.Boundary.IFactory.cs" />
     <Compile Include="Advice\Boundary\Advice.IBoundary.cs" />
     <Compile Include="Advice\Basic\Advisor.Basic.Around.cs" />
     <Compile Include="Advice\Basic\Advisor.Basic.Before.cs" />

@@ -12,6 +12,8 @@ namespace Puresharp
         static public Advice Boundary<T>(this Advice.Style.IBasic basic)
             where T : Advice.IBoundary, new()
         {
+            //TODO optimize by introspecting T to disable boundary call if not requiered
+            //TODO missing dispose call!
             return new Advice((_Method, _Pointer) =>
             {
                 var _type = _Method.ReturnType();
