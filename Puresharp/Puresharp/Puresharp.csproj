@@ -75,6 +75,8 @@
     <Compile Include="Aspect\Aspect.cs" />
     <Compile Include="Aspect\Directory\Aspect.Directory.cs" />
     <Compile Include="Aspect\Directory\Aspect.Directory.Entry.cs" />
+    <Compile Include="Composition.cs" />
+    <Compile Include="Composition.IContainer.cs" />
     <Compile Include="Concurrency.cs" />
     <Compile Include="Data\Data.Collection.cs" />
     <Compile Include="Data\Data.cs" />
