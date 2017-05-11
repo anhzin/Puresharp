@@ -94,6 +94,7 @@
     <Compile Include="Runtime\Dictionary\Runtime.Dictionary.Inherited.cs" />
     <Compile Include="Runtime\Runtime.Inventory.cs" />
     <Compile Include="Runtime\Runtime.Lookup.cs" />
+    <Compile Include="Startup.cs" />
     <Compile Include="System\Collections\Generic\Collection.cs" />
     <Compile Include="System\Collections\Generic\Enumerable.cs" />
     <Compile Include="System\Collections\Generic\Enumerable.Enumerator.cs" />
