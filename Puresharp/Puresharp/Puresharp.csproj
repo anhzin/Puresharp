@@ -75,7 +75,8 @@
     <Compile Include="Aspect\Aspect.cs" />
     <Compile Include="Aspect\Directory\Aspect.Directory.cs" />
     <Compile Include="Aspect\Directory\Aspect.Directory.Entry.cs" />
-    <Compile Include="Composition\Composition.Container.cs" />
+    <Compile Include="Composition\Composition.Linq.cs" />
+    <Compile Include="Composition\Composition.Lookup.cs" />
     <Compile Include="Composition\Composition.cs" />
     <Compile Include="Concurrency.cs" />
     <Compile Include="Data\Data.Collection.cs" />
