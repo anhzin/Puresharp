@@ -20,7 +20,7 @@ namespace Puresharp
                 {
                     if (Interlocked.CompareExchange(ref Composition.Container<T>.Instance, instance, _instance) == _instance)
                     {
-                        Data.Linkup<Func<T>>.Join(ref Composition.Container<T>.Linkup, instance);
+                        Data.Linkup<Func<T>>.Update(ref Composition.Container<T>.Linkup, instance);
                         while (true)
                         {
                             var _enumerable = Composition.Container<T>.Enumerable;
@@ -38,7 +38,7 @@ namespace Puresharp
                 {
                     if (Interlocked.CompareExchange(ref Composition.Container<T>.Instance, Composition.Container<T>.Multiple, _instance) == _instance)
                     {
-                        Data.Linkup<Func<T>>.Join(ref Composition.Container<T>.Linkup, instance);
+                        Data.Linkup<Func<T>>.Update(ref Composition.Container<T>.Linkup, instance);
                         while (true)
                         {
                             var _enumerable = Composition.Container<T>.Enumerable;
@@ -73,7 +73,7 @@ namespace Puresharp
                         Composition.Container<T>.Dictionary.Add(instance, _item);
                         Interlocked.CompareExchange(ref Composition.Container<T>.Instance, _item, instance);
                         var _linkup = Composition.Container<T>.Linkup;
-                        if (_linkup != null) { _linkup.Update(instance, _item); }
+                        if (_linkup != null) { _linkup.Update(_Value => object.ReferenceEquals(_Value, instance), _item); }
                         return _singleton;
                     }
                 });

@@ -22,7 +22,7 @@ namespace Puresharp
                 return _array;
             }
 
-            static public Linkup<T> Join(ref Data.Linkup<T> linkup, T value)
+            static public Linkup<T> Update(ref Data.Linkup<T> linkup, T value)
             {
                 var _linkup = new Linkup<T>(value);
                 while (true)
@@ -57,13 +57,13 @@ namespace Puresharp
                 get { return this.m_Count; }
             }
 
-            public void Update(T obsolete, T value)
+            public void Update(Func<T, bool> predicate, T value)
             {
-                if (object.Equals(this.m_Value, obsolete)) { this.m_Value = value; }
+                if (predicate(this.m_Value)) { this.m_Value = value; }
                 var _linkup = this.m_Linkup;
                 while (_linkup != null)
                 {
-                    if (object.Equals(_linkup.m_Value, obsolete)) { _linkup.m_Value = value; }
+                    if (predicate(_linkup.m_Value)) { _linkup.m_Value = value; }
                     _linkup = _linkup.m_Linkup;
                 }
             }
