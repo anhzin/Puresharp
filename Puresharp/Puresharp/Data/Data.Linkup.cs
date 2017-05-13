@@ -57,6 +57,17 @@ namespace Puresharp
                 get { return this.m_Count; }
             }
 
+            public void Update(T predicate, T value)
+            {
+                if (object.Equals(predicate, this.m_Value)) { this.m_Value = value; }
+                var _linkup = this.m_Linkup;
+                while (_linkup != null)
+                {
+                    if (object.Equals(predicate, _linkup.m_Value)) { _linkup.m_Value = value; }
+                    _linkup = _linkup.m_Linkup;
+                }
+            }
+
             public void Update(Func<T, bool> predicate, T value)
             {
                 if (predicate(this.m_Value)) { this.m_Value = value; }

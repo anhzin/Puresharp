@@ -13,46 +13,54 @@ using System.Threading;
 
 namespace Puresharp
 {
-    static public partial class Composition
+    public sealed class Composition : Composition<Neptune>
+    {
+        private Composition()
+        {
+        }
+    }
+
+    public partial class Composition<X>
+        where X : class
     {
         static public void Add<T>(Func<T> instance)
             where T : class
         {
             while (true)
             {
-                var _instance = Composition.Lookup<T>.m_Instance;
-                if (_instance == Composition.Lookup<T>.None)
+                var _instance = Composition<X>.Lookup<T>.m_Instance;
+                if (_instance == Composition<X>.Lookup<T>.None)
                 {
-                    if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Instance, instance, _instance) == _instance)
+                    if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Instance, instance, _instance) == _instance)
                     {
-                        Data.Linkup<Func<T>>.Update(ref Composition.Lookup<T>.Linkup, instance);
+                        Data.Linkup<Func<T>>.Update(ref Composition<X>.Lookup<T>.Linkup, instance);
                         while (true)
                         {
-                            var _enumerable = Composition.Lookup<T>.m_Enumerable;
-                            var _linkup = Composition.Lookup<T>.Linkup;
-                            if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Enumerable, Composition.Lookup<T>.Empty, _enumerable) == _enumerable) { return; } }
+                            var _enumerable = Composition<X>.Lookup<T>.m_Enumerable;
+                            var _linkup = Composition<X>.Lookup<T>.Linkup;
+                            if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Enumerable, Composition<X>.Lookup<T>.Empty, _enumerable) == _enumerable) { return; } }
                             else
                             {
                                 var _activation = (Func<T>[])_linkup;
-                                if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Enumerable, new Func<IEnumerable<T>>(() => { var _array = new T[_activation.Length]; for (var _index = 0; _index < _array.Length; _index++) { _array[_index] = _activation[_index](); } return _array; }), _enumerable) == _enumerable) { return; }
+                                if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Enumerable, new Func<IEnumerable<T>>(() => { var _array = new T[_activation.Length]; for (var _index = 0; _index < _array.Length; _index++) { _array[_index] = _activation[_index](); } return _array; }), _enumerable) == _enumerable) { return; }
                             }
                         }
                     }
                 }
                 else
                 {
-                    if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Instance, Composition.Lookup<T>.Multiple, _instance) == _instance)
+                    if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Instance, Composition<X>.Lookup<T>.Multiple, _instance) == _instance)
                     {
-                        Data.Linkup<Func<T>>.Update(ref Composition.Lookup<T>.Linkup, instance);
+                        Data.Linkup<Func<T>>.Update(ref Composition<X>.Lookup<T>.Linkup, instance);
                         while (true)
                         {
-                            var _enumerable = Composition.Lookup<T>.m_Enumerable;
-                            var _linkup = Composition.Lookup<T>.Linkup;
-                            if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Enumerable, Composition.Lookup<T>.Empty, _enumerable) == _enumerable) { return; } }
+                            var _enumerable = Composition<X>.Lookup<T>.m_Enumerable;
+                            var _linkup = Composition<X>.Lookup<T>.Linkup;
+                            if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Enumerable, Composition<X>.Lookup<T>.Empty, _enumerable) == _enumerable) { return; } }
                             else
                             {
                                 var _activation = (Func<T>[])_linkup;
-                                if (Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Enumerable, new Func<IEnumerable<T>>(() => { var _array = new T[_activation.Length]; for (var _index = 0; _index < _array.Length; _index++) { _array[_index] = _activation[_index](); } return _array; }), _enumerable) == _enumerable) { return; }
+                                if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Enumerable, new Func<IEnumerable<T>>(() => { var _array = new T[_activation.Length]; for (var _index = 0; _index < _array.Length; _index++) { _array[_index] = _activation[_index](); } return _array; }), _enumerable) == _enumerable) { return; }
                             }
                         }
                     }
@@ -63,27 +71,35 @@ namespace Puresharp
         static public void Add<T>(Func<T> instance, Lifetime lifetime)
             where T : class
         {
-            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { Composition.Add<T>(instance); }
+            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { Composition<X>.Add<T>(instance); }
             else if (object.ReferenceEquals(lifetime, Lifetime.Singleton))
             {
-                var _instance = new Func<T>(() =>
+                var _handle = new object();
+                var _return = null as Func<T>;
+                var _instance = null as Func<T>;
+                Composition<X>.Add<T>(_instance = new Func<T>(() =>
                 {
-                    lock (Composition.Lookup<T>.Handle)
+                    lock (_handle)
                     {
-                        Func<T> _item;
-                        if (Composition.Lookup<T>.Dictionary.TryGetValue(instance, out _item)) { return _item(); }
-                        var _singleton = instance();
-                        _item = new Func<T>(() => _singleton);
-                        Composition.Lookup<T>.Dictionary.Add(instance, _item);
-                        Interlocked.CompareExchange(ref Composition.Lookup<T>.m_Instance, _item, Composition.Lookup<T>.Map[instance]);
-                        Composition.Lookup<T>.Map.Remove(instance);
-                        var _linkup = Composition.Lookup<T>.Linkup;
-                        if (_linkup != null) { _linkup.Update(_Value => object.ReferenceEquals(_Value, instance), _item); }
-                        return _singleton;
+                        if (object.Equals(_return, null))
+                        {
+                            var _singleton = instance();
+                            _return = new Func<T>(() => _singleton);
+                            Composition<X>.Lookup<T>.Dictionary.Add(instance, _return);
+                            Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Instance, _return, _instance);
+                            var _linkup = Composition<X>.Lookup<T>.Linkup;
+                            if (_linkup != null) { _linkup.Update(instance, _return); }
+                            return _singleton;
+                        }
+                        return _return();
                     }
-                });
-                lock (Composition.Lookup<T>.Handle) { Composition.Lookup<T>.Map.Add(instance, _instance); }
-                Composition.Add<T>(_instance);
+                }));
+            }
+            else if (lifetime is Lifetime.ICycle)
+            {
+                Composition<X>.Scope<T> _scope = null;
+                (lifetime as Lifetime.ICycle).Establish<Composition<X>.Scope<T>>(() => _scope = new Composition<X>.Scope<T>(instance));
+                Composition<X>.Add<T>(new Func<T>(() => _scope.Instance));
             }
             else
             {
@@ -104,7 +120,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly);
+                    Composition<X>.Add<T>(_assembly);
                 }
             }
         }
@@ -121,7 +137,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, predicate);
+                    Composition<X>.Add<T>(_assembly, predicate);
                 }
             }
         }
@@ -138,7 +154,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly);
+                    Composition<X>.Add<T>(_assembly);
                 }
             }
         }
@@ -155,7 +171,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, predicate);
+                    Composition<X>.Add<T>(_assembly, predicate);
                 }
             }
         }
@@ -164,14 +180,14 @@ namespace Puresharp
             where T : class
         {
             if (assemblies == null) { return; }
-            foreach (var _assembly in assemblies) { Composition.Add<T>(_assembly); }
+            foreach (var _assembly in assemblies) { Composition<X>.Add<T>(_assembly); }
         }
 
         static public void Add<T>(IEnumerable<Assembly> assemblies, Func<Type, bool> predicate)
             where T : class
         {
             if (assemblies == null) { return; }
-            foreach (var _assembly in assemblies) { Composition.Add<T>(_assembly, predicate); }
+            foreach (var _assembly in assemblies) { Composition<X>.Add<T>(_assembly, predicate); }
         }
 
         static public void Add<T>(Assembly assembly)
@@ -181,7 +197,7 @@ namespace Puresharp
             for (var _index = 0; _index < _types.Length; _index++)
             {
                 var _type = _types[_index];
-                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type)) { Composition.Add<T>(_type); }
+                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type)) { Composition<X>.Add<T>(_type); }
             }
         }
 
@@ -192,7 +208,7 @@ namespace Puresharp
             for (var _index = 0; _index < _types.Length; _index++)
             {
                 var _type = _types[_index];
-                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type) && ( predicate == null || predicate(_type))) { Composition.Add<T>(_type); }
+                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type) && ( predicate == null || predicate(_type))) { Composition<X>.Add<T>(_type); }
             }
         }
 
@@ -200,7 +216,7 @@ namespace Puresharp
             where T : class
         {
             if (types == null) { return; }
-            foreach (var _type in types) { Composition.Add<T>(_type); }
+            foreach (var _type in types) { Composition<X>.Add<T>(_type); }
         }
 
         static public void Add<T>(Type type)
@@ -218,19 +234,19 @@ namespace Puresharp
                     var _parameter = _signature[_index];
                     var _type = _parameter.ParameterType;
                     if (_parameter.IsOptional) { _arguments[_index] = _parameter.HasDefaultValue ? Expression.Constant(_parameter.DefaultValue, _type) as Expression : Expression.Default(_type); }
-                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
+                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition<X>.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
                     else { throw new NotSupportedException(); }
                 }
-                Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor, _arguments)).Compile());
+                Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor, _arguments)).Compile());
             }
-            else { Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile()); }
+            else { Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile()); }
         }
 
         static public void Add<T>(ConstructorInfo constructor)
             where T : class
         {
             var _signature = constructor.GetParameters();
-            if (_signature.Length == 0) { Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor)).Compile()); }
+            if (_signature.Length == 0) { Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor)).Compile()); }
             else
             {
                 var _arguments = new Expression[_signature.Length];
@@ -239,17 +255,17 @@ namespace Puresharp
                     var _parameter = _signature[_index];
                     var _type = _parameter.ParameterType;
                     if (_parameter.IsOptional) { _arguments[_index] = _parameter.HasDefaultValue ? Expression.Constant(_parameter.DefaultValue, _type) as Expression : Expression.Default(_type); }
-                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
+                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition<X>.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
                     else { throw new NotSupportedException(); }
                 }
-                Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor, _arguments)).Compile());
+                Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor, _arguments)).Compile());
             }
         }
 
         static public void Add<T>(T singleton)
             where T : class
         {
-            Composition.Add<T>(new Func<T>(() => singleton));
+            Composition<X>.Add<T>(new Func<T>(() => singleton));
         }
 
         static public void Add<T>(params T[] multiton)
@@ -259,7 +275,7 @@ namespace Puresharp
             for (var _index = 0; _index < multiton.Length; _index++)
             {
                 var _instance = multiton[_index];
-                Composition.Add<T>(new Func<T>(() => _instance));
+                Composition<X>.Add<T>(new Func<T>(() => _instance));
             }
         }
 
@@ -267,7 +283,7 @@ namespace Puresharp
             where T : class
         {
             if (multiton == null) { return; }
-            foreach (var _instance in multiton) { Composition.Add<T>(new Func<T>(() => _instance)); }
+            foreach (var _instance in multiton) { Composition<X>.Add<T>(new Func<T>(() => _instance)); }
         }
 
         static public void Add<T>(string directory, SearchOption option, Func<Type, Lifetime> lifetime)
@@ -282,7 +298,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, lifetime);
+                    Composition<X>.Add<T>(_assembly, lifetime);
                 }
             }
         }
@@ -299,7 +315,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, predicate, lifetime);
+                    Composition<X>.Add<T>(_assembly, predicate, lifetime);
                 }
             }
         }
@@ -316,7 +332,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, lifetime);
+                    Composition<X>.Add<T>(_assembly, lifetime);
                 }
             }
         }
@@ -333,7 +349,7 @@ namespace Puresharp
                     try { _assembly = Assembly.LoadFrom(_filename); }
                     catch { }
                     if (_assembly == null) { continue; }
-                    Composition.Add<T>(_assembly, predicate, lifetime);
+                    Composition<X>.Add<T>(_assembly, predicate, lifetime);
                 }
             }
         }
@@ -342,14 +358,14 @@ namespace Puresharp
             where T : class
         {
             if (assemblies == null) { return; }
-            foreach (var _assembly in assemblies) { Composition.Add<T>(_assembly, lifetime); }
+            foreach (var _assembly in assemblies) { Composition<X>.Add<T>(_assembly, lifetime); }
         }
 
         static public void Add<T>(IEnumerable<Assembly> assemblies, Func<Type, bool> predicate, Func<Type, Lifetime> lifetime)
             where T : class
         {
             if (assemblies == null) { return; }
-            foreach (var _assembly in assemblies) { Composition.Add<T>(_assembly, predicate, lifetime); }
+            foreach (var _assembly in assemblies) { Composition<X>.Add<T>(_assembly, predicate, lifetime); }
         }
 
         static public void Add<T>(Assembly assembly, Func<Type, Lifetime> lifetime)
@@ -359,7 +375,7 @@ namespace Puresharp
             for (var _index = 0; _index < _types.Length; _index++)
             {
                 var _type = _types[_index];
-                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type)) { Composition.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
+                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type)) { Composition<X>.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
             }
         }
 
@@ -370,7 +386,7 @@ namespace Puresharp
             for (var _index = 0; _index < _types.Length; _index++)
             {
                 var _type = _types[_index];
-                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type) && (predicate == null || predicate(_type))) { Composition.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
+                if (_type.IsClass && !_type.IsAbstract && Runtime<T>.Type.IsAssignableFrom(_type) && (predicate == null || predicate(_type))) { Composition<X>.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
             }
         }
 
@@ -378,7 +394,7 @@ namespace Puresharp
             where T : class
         {
             if (types == null) { return; }
-            foreach (var _type in types) { Composition.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
+            foreach (var _type in types) { Composition<X>.Add<T>(_type, lifetime == null ? Lifetime.Volatile : lifetime(_type)); }
         }
 
         static public void Add<T>(Type type, Lifetime lifetime)
@@ -396,19 +412,19 @@ namespace Puresharp
                     var _parameter = _signature[_index];
                     var _type = _parameter.ParameterType;
                     if (_parameter.IsOptional) { _arguments[_index] = _parameter.HasDefaultValue ? Expression.Constant(_parameter.DefaultValue, _type) as Expression : Expression.Default(_type); }
-                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
+                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition<X>.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
                     else { throw new NotSupportedException(); }
                 }
-                Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor, _arguments)).Compile(), lifetime);
+                Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor, _arguments)).Compile(), lifetime);
             }
-            else { Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile(), lifetime); }
+            else { Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile(), lifetime); }
         }
 
         static public void Add<T>(ConstructorInfo constructor, Lifetime lifetime)
             where T : class
         {
             var _signature = constructor.GetParameters();
-            if (_signature.Length == 0) { Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor)).Compile(), lifetime); }
+            if (_signature.Length == 0) { Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor)).Compile(), lifetime); }
             else
             {
                 var _arguments = new Expression[_signature.Length];
@@ -417,21 +433,21 @@ namespace Puresharp
                     var _parameter = _signature[_index];
                     var _type = _parameter.ParameterType;
                     if (_parameter.IsOptional) { _arguments[_index] = _parameter.HasDefaultValue ? Expression.Constant(_parameter.DefaultValue, _type) as Expression : Expression.Default(_type); }
-                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
+                    else if (_parameter.ParameterType.IsClass && !_parameter.ParameterType.IsSealed) { _arguments[_index] = Runtime.Method(() => Composition<X>.Linq.Instance<object>()).GetGenericMethodDefinition().MakeGenericMethod(_type).Invoke(null, new object[0]) as Expression; }
                     else { throw new NotSupportedException(); }
                 }
-                Composition.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor, _arguments)).Compile(), lifetime);
+                Composition<X>.Add<T>(Expression.Lambda<Func<T>>(Expression.New(constructor, _arguments)).Compile(), lifetime);
             }
         }
 
         static public void Clear<T>()
             where T : class
         {
-            lock (Composition.Lookup<T>.Handle)
+            lock (Composition<X>.Lookup<T>.Handle)
             {
-                Composition.Lookup<T>.m_Instance = Composition.Lookup<T>.None;
-                Composition.Lookup<T>.m_Enumerable = Composition.Lookup<T>.Empty;
-                Composition.Lookup<T>.Dictionary.Clear();
+                Composition<X>.Lookup<T>.m_Instance = Composition<X>.Lookup<T>.None;
+                Composition<X>.Lookup<T>.m_Enumerable = Composition<X>.Lookup<T>.Empty;
+                Composition<X>.Lookup<T>.Dictionary.Clear();
             }
         }
 
@@ -442,7 +458,7 @@ namespace Puresharp
         static public T Instance<T>()
             where T : class
         {
-            return Composition.Lookup<T>.m_Instance();
+            return Composition<X>.Lookup<T>.m_Instance();
         }
 
         [DebuggerNonUserCode]
@@ -452,7 +468,7 @@ namespace Puresharp
         static public IEnumerable<T> Enumerable<T>()
             where T : class
         {
-            return Composition.Lookup<T>.m_Enumerable();
+            return Composition<X>.Lookup<T>.m_Enumerable();
         }
 
         /// <summary>
@@ -487,6 +503,11 @@ namespace Puresharp
         new static public bool ReferenceEquals(object left, object right)
         {
             return object.ReferenceEquals(left, right);
+        }
+
+        protected Composition()
+        {
+            throw new NotSupportedException();
         }
     }
 }

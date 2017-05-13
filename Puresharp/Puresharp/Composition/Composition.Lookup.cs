@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Puresharp
 {
-    static public partial class Composition
+    public partial class Composition<X>
     {
         [DebuggerNonUserCode]
         [Browsable(false)]
@@ -22,8 +22,8 @@ namespace Puresharp
             static internal Func<T> Multiple = new Func<T>(() => { throw new NotSupportedException(); });
             static internal Func<IEnumerable<T>> Empty = new Func<Func<IEnumerable<T>>>(() => { var _emprty = new T[0]; return new Func<IEnumerable<T>>(() => _emprty); })();
             static internal Data.Linkup<Func<T>> Linkup = null;
-            static internal Func<T> m_Instance = Composition.Lookup<T>.None;
-            static internal Func<IEnumerable<T>> m_Enumerable = Composition.Lookup<T>.Empty;
+            static internal Func<T> m_Instance = Composition<X>.Lookup<T>.None;
+            static internal Func<IEnumerable<T>> m_Enumerable = Composition<X>.Lookup<T>.Empty;
 
             [Browsable(false)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -33,7 +33,7 @@ namespace Puresharp
                 [DebuggerStepThrough]
                 [DebuggerHidden]
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return Composition.Lookup<T>.m_Instance; }
+                get { return Composition<X>.Lookup<T>.m_Instance; }
             }
 
             [Browsable(false)]
@@ -44,7 +44,7 @@ namespace Puresharp
                 [DebuggerStepThrough]
                 [DebuggerHidden]
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return Composition.Lookup<T>.m_Enumerable; }
+                get { return Composition<X>.Lookup<T>.m_Enumerable; }
             }
 
             /// <summary>

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using DryIoc;
+using Autofac;
+using Ninject;
 
 namespace Puresharp.SimpleInjectorBattle
 {
@@ -77,78 +80,61 @@ namespace Puresharp.SimpleInjectorBattle
         }
     }
 
+    public class Container
+    {
+        public T Instance<T>()
+            where T : class
+        {
+            return Composition.Lookup<T>.Instance();
+        }
+    }
+
     class Program
     {
+        [MTAThread]
         static void Main(string[] args)
         {
-            var container = new SimpleInjector.Container();
+            var _calculator = null as ICalculator;
+            Program.Run("None", () => { _calculator = new Calculator(); });
 
-            // Register your types, for instance:
-            container.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
-         
-            //container.Register<ITestInjectedClass, TestInjectedClass>(Lifestyle.Singleton);
-            //container.Register<IUserRepository, TestInjectedClass>(Lifestyle.Singleton);
-            //container.Register<IUserContext, WinFormsUserContext>();
-            var c = container.GetInstance<ICalculator>();
-            var max = 10000000;
-            var sw = new Stopwatch();
-            sw.Restart();
-            for (var i = 0; i < max; i++)
-            {
-                c = container.GetInstance<ICalculator>();
-            }
-            sw.Stop();
-            Console.WriteLine("simple injector : " + sw.Elapsed);
+            var _simpleInjector = new SimpleInjector.Container();
+            _simpleInjector.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
+            Program.Run("SimpleInjector", () => { _calculator = _simpleInjector.GetInstance<ICalculator>(); });
 
-            var sw1 = new Stopwatch();
-            sw1.Restart();
-            for (var i = 0; i < max; i++)
-            {
-                c = new Calculator();
-            }
-            sw1.Stop();
-            Console.WriteLine("new : " + sw1.Elapsed);
+            Composition.Add<ICalculator>(() => new Calculator());
+            Program.Run("Puresharp", () => { _calculator = Composition.Lookup<ICalculator>.Instance(); });
             
-            var lambda = new Func<ICalculator>(() => new Calculator());
-            CCC<ICalculator>.p = lambda;
-            Composition.Add<ICalculator>(lambda, Lifetime.Volatile);
-
-            var sw2 = new Stopwatch();
-            sw2.Restart();
-            for (var i = 0; i < max; i++)
-            {
-                c = CCC<ICalculator>.pp();
-            }
-            sw2.Stop();
-            Console.WriteLine("lambda : " + sw2.Elapsed);
-
-            //Calculator cp = new Calculator();
-            var cc = new Container1();
-            //cc.AddSingleton<ICalculator>(() => new Calculator());
-            cc.Add<ICalculator>(lambda);
-
+            DryIoc.Container dryioc = new DryIoc.Container();
+            dryioc.Register<ICalculator, Calculator>();
+            Program.Run("DryIoc", () => { _calculator = dryioc.Resolve<ICalculator>(); });
             
+            Autofac.ContainerBuilder autofacbuilder = new Autofac.ContainerBuilder();
+            autofacbuilder.RegisterType<Calculator>().As<ICalculator>();
+            var autofac = autofacbuilder.Build(Autofac.Builder.ContainerBuildOptions.None);
+            Program.Run("Autofac", () => { _calculator = autofac.Resolve<ICalculator>(); });
+            
+            var ninject = new Ninject.StandardKernel();
+            ninject.Bind<ICalculator>().To<Calculator>();
+            Program.Run("Ninject", () => { _calculator = ninject.Get<ICalculator>(); });
+            
+            Abioc.Registration.RegistrationSetup abiocsetup = new Abioc.Registration.RegistrationSetup();
+            abiocsetup.Register<ICalculator, Calculator>();
+            var abioc = Abioc.ContainerConstruction.Construct(abiocsetup, typeof(ICalculator).Assembly);
+            Program.Run("Abioc", () => { _calculator = abioc.GetService<ICalculator>(); });
 
+            Grace.DependencyInjection.DependencyInjectionContainer gracecontainer = new Grace.DependencyInjection.DependencyInjectionContainer();
+            gracecontainer.Configure(c => c.Export<Calculator>().As<ICalculator>());
+            Program.Run("Grace", () => { _calculator = gracecontainer.Locate<ICalculator>(); });
+        }
 
-            var sw3 = new Stopwatch();
-            sw3.Restart();
-            for (var i = 0; i < max; i++)
-            {
-                c = cc.Instance<ICalculator>();
-            }
-            sw3.Stop();
-            Console.WriteLine("Container1 : " + sw3.Elapsed);
-
-            c = Composition.Instance<ICalculator>();
-
-            var sw4 = new Stopwatch();
-            sw4.Restart();
-            for (var i = 0; i < max; i++)
-            {
-                c = Composition.Lookup<ICalculator>.Instance();//.Instance<ICalculator>();
-            }
-            sw4.Stop();
-            Console.WriteLine("Puresharp : " + sw4.Elapsed);
+        static public void Run(string name, Action action)
+        {
+            for (var _index = 0; _index < 100; _index++) { action(); } 
+            var _measure = new Stopwatch();
+            _measure.Start();
+            for (var i = 0; i < 1000000; i++) { action(); }
+            _measure.Stop();
+            Console.WriteLine($"{ name } : { Convert.ToInt32(_measure.Elapsed.TotalMilliseconds) }");
         }
     }
 }
