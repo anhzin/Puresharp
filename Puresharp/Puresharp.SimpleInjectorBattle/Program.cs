@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using DryIoc;
 using Autofac;
 using Ninject;
+using System.Threading;
+using System.Reflection;
 
 namespace Puresharp.SimpleInjectorBattle
 {
@@ -19,122 +21,191 @@ namespace Puresharp.SimpleInjectorBattle
     {
     }
 
-    public class Container1
+    static public class T1
     {
-        public class C<T>
-        {
-            static public bool activated;
-            static internal object handle = new object();
-            static internal T Singleton;
-            static internal Func<T> p;
-
-            public T Sing()
-            {
-                return Singleton;
-            }
-        }
-
-        virtual public void Add<T>(Func<T> p)
-        {
-            C<T>.p = p;
-        }
-
-        virtual public void AddSingleton<T>(Func<T> p)
-        {
-            C<T>.p = new Func<T>(() =>
-            {
-                lock (C<T>.handle)
-                {
-                    if (C<T>.activated) { return C<T>.p(); }
-                    var a  = C<T>.Singleton = p();
-                    C<T>.p = new Func<T>(() => a);
-                    C<T>.activated = true;
-                    return a;
-                }
-            });
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        virtual public T Instance<T>()
-        {
-            return C<T>.p();
-        }
+        static public int Index = -1;
     }
 
-    static public class CCC<T>
+    static public class TTT<T>
+        where T : class
     {
-        static public Func<T> p;
-
-        static public Func<T> pp
-        {
-            get { return p; }
-        }
+        static public Func<T>[] Buffer;
     }
 
-    static public class CCCC
+    public class Container1 : IComposition
     {
-        static public T Instance<T>()
+        private object[] m_Instance;
+
+        public void Add<T>(params T[] array) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(Type type) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(MethodInfo method) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(ConstructorInfo constructor) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(IEnumerable<T> enumerable) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(T instance) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(Func<T> ii)
             where T : class
         {
-            return CCC<T>.p();
+            TTT<T>.Buffer = new Func<T>[] { ii };
         }
-    }
 
-    public class Container
-    {
+        public void Add<T>(MethodInfo method, Lifetime lifetime) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(ConstructorInfo constructor, Lifetime lifetime) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(Type type, Lifetime lifetime) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Add<T>(Func<T> instance, Lifetime lifetime) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public T[] Array<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<T> Enumerable<T>() where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        private int p = 0;
+
         public T Instance<T>()
             where T : class
         {
-            return Composition.Lookup<T>.Instance();
+            return TTT<T>.Buffer[this.p]();
         }
     }
 
-    class Program
+    static public class Program
     {
-        [MTAThread]
-        static void Main(string[] args)
+        [STAThread]
+        static public void Main(string[] args)
         {
-            var _calculator = null as ICalculator;
-            Program.Run("None", () => { _calculator = new Calculator(); });
+            //Composition<object>.Add<ICalculator>(() => new Calculator());
 
-            var _simpleInjector = new SimpleInjector.Container();
-            _simpleInjector.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
-            Program.Run("SimpleInjector", () => { _calculator = _simpleInjector.GetInstance<ICalculator>(); });
+            //var t1 = Composition<object>.Enumerable<ICalculator>();
 
-            Composition.Add<ICalculator>(() => new Calculator());
-            Program.Run("Puresharp", () => { _calculator = Composition.Lookup<ICalculator>.Instance(); });
-            
-            DryIoc.Container dryioc = new DryIoc.Container();
-            dryioc.Register<ICalculator, Calculator>();
-            Program.Run("DryIoc", () => { _calculator = dryioc.Resolve<ICalculator>(); });
-            
-            Autofac.ContainerBuilder autofacbuilder = new Autofac.ContainerBuilder();
-            autofacbuilder.RegisterType<Calculator>().As<ICalculator>();
-            var autofac = autofacbuilder.Build(Autofac.Builder.ContainerBuildOptions.None);
-            Program.Run("Autofac", () => { _calculator = autofac.Resolve<ICalculator>(); });
-            
-            var ninject = new Ninject.StandardKernel();
-            ninject.Bind<ICalculator>().To<Calculator>();
-            Program.Run("Ninject", () => { _calculator = ninject.Get<ICalculator>(); });
-            
-            Abioc.Registration.RegistrationSetup abiocsetup = new Abioc.Registration.RegistrationSetup();
-            abiocsetup.Register<ICalculator, Calculator>();
-            var abioc = Abioc.ContainerConstruction.Construct(abiocsetup, typeof(ICalculator).Assembly);
-            Program.Run("Abioc", () => { _calculator = abioc.GetService<ICalculator>(); });
+            //Composition<object>.Add<ICalculator>(() => new Calculator());
+            ////Composition<object>.Add<ICalculator>(() => new Calculator());
+            ////Composition<object>.Add<ICalculator>(() => new Calculator());
 
-            Grace.DependencyInjection.DependencyInjectionContainer gracecontainer = new Grace.DependencyInjection.DependencyInjectionContainer();
-            gracecontainer.Configure(c => c.Export<Calculator>().As<ICalculator>());
-            Program.Run("Grace", () => { _calculator = gracecontainer.Locate<ICalculator>(); });
-        }
+            //var t = Composition<object>.Array<ICalculator>();
 
-        static public void Run(string name, Action action)
-        {
-            for (var _index = 0; _index < 100; _index++) { action(); } 
-            var _measure = new Stopwatch();
-            _measure.Start();
-            for (var i = 0; i < 1000000; i++) { action(); }
-            _measure.Stop();
-            Console.WriteLine($"{ name } : { Convert.ToInt32(_measure.Elapsed.TotalMilliseconds) }");
+            var _benchmark = new Benchmark(() => new Action(() => new Calculator()));
+            _benchmark.Add("SimpleInjector", () => 
+            {
+                var _container = new SimpleInjector.Container();
+                _container.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
+                return () => _container.GetInstance<ICalculator>();
+            });
+            _benchmark.Add("Puresharp [static]", () => 
+            {
+                Composition<object>.Add<ICalculator>(() => new Calculator());
+                return () => Composition<object>.Lookup<ICalculator>.Instance();
+            });
+            _benchmark.Add("Puresharp [instance]", () =>
+            {
+                var _container = new Composition();
+                _container.Add<ICalculator>(() => new Calculator());
+                return () => Composition.Lookup<ICalculator>.Instance(_container);
+            });
+            _benchmark.Add("Puresharp [interface]", () =>
+            {
+                var _container = new Composition() as IComposition;
+                _container.Add<ICalculator>(() => new Calculator());
+                return () => _container.Instance<ICalculator>();
+            });
+            _benchmark.Add("Puresharp [X]", () =>
+            {
+                var _container = new Container1() as IComposition;
+                _container.Add<ICalculator>(() => new Calculator());
+                return () => _container.Instance<ICalculator>();
+            });
+            //_benchmark.Add("Puresharp [X2]", () =>
+            //{
+            //    var _container = Composition.Create();
+            //    _container.Add<ICalculator>(() => new Calculator());
+            //    return () => _container.Instance<ICalculator>();
+            //});
+            _benchmark.Add("DryIoc", () => 
+            {
+                var _container = new DryIoc.Container();
+                _container.Register<ICalculator, Calculator>();
+                return () => _container.Resolve<ICalculator>();
+            });
+            _benchmark.Add("DryIoc [interface]", () =>
+            {
+                var _container = new DryIoc.Container() as DryIoc.IContainer;
+                _container.Register<ICalculator, Calculator>();
+                return () => _container.Resolve<ICalculator>();
+            });
+            _benchmark.Add("Autofac", () =>
+            {
+                var _builder = new Autofac.ContainerBuilder();
+                _builder.RegisterType<Calculator>().As<ICalculator>();
+                var _container = _builder.Build(Autofac.Builder.ContainerBuildOptions.None);
+                return () => _container.Resolve<ICalculator>();
+            });
+            _benchmark.Add("Ninject", () =>
+            {
+                var _container = new Ninject.StandardKernel();
+                _container.Bind<ICalculator>().To<Calculator>();
+                return () => _container.Get<ICalculator>();
+            });
+            _benchmark.Add("Abioc", () => 
+            {
+                var _setup = new Abioc.Registration.RegistrationSetup();
+                _setup.Register<ICalculator, Calculator>();
+                var _container = Abioc.ContainerConstruction.Construct(_setup, typeof(ICalculator).Assembly);
+                return () => _container.GetService<ICalculator>();
+            });
+            _benchmark.Add("Grace", () => 
+            {
+                var _container = new Grace.DependencyInjection.DependencyInjectionContainer();
+                _container.Configure(c => c.Export<Calculator>().As<ICalculator>());
+                return () => _container.Locate<ICalculator>();
+            });
+            _benchmark.Run(Console.WriteLine);
         }
     }
 }

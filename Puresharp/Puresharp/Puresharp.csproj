@@ -22,6 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DocumentationFile>bin\Debug\Puresharp.XML</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DocumentationFile>bin\Release\Puresharp.XML</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -80,6 +82,7 @@
     <Compile Include="Composition\Composition.Lookup.cs" />
     <Compile Include="Composition\Composition.cs" />
     <Compile Include="Composition\Composition.Scope.cs" />
+    <Compile Include="Composition\IComposition.cs" />
     <Compile Include="Concurrency.cs" />
     <Compile Include="Data\Data.Collection.cs" />
     <Compile Include="Data\Data.cs" />

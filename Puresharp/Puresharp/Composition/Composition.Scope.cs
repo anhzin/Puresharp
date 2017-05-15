@@ -3,9 +3,9 @@ using System.Threading;
 
 namespace Puresharp
 {
-    public partial class Composition<X>
+    public sealed partial class Composition
     {
-        private class Scope<T> : IDisposable
+        internal class Scope<T> : IDisposable
         {
             private AsyncLocal<Func<T>> m_Instance;
 
