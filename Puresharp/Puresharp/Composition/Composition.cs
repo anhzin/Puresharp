@@ -501,7 +501,7 @@ namespace Puresharp
                     for (var _index = 0; _index < Composition<X>.Lookup<T>.Factory.Length; _index++)
                     {
                         _constructor.Emit(OpCodes.Ldarg_0);
-                        _constructor.Emit(OpCodes.Ldarg_2);
+                        _constructor.Emit(OpCodes.Ldarg_1);
                         _constructor.Emit(OpCodes.Ldfld, Composition<X>.Lookup<T>.Module.GetType((Composition<X>.Lookup<T>.Factory.Length - 1).ToString()).GetField(_index.ToString()));
                         _constructor.Emit(OpCodes.Stfld, _field = _type.DefineField(_index.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
                         _body.Emit(OpCodes.Dup);
@@ -520,13 +520,18 @@ namespace Puresharp
                         }
                         _body.Emit(OpCodes.Ldarg_0);
                         _body.Emit(OpCodes.Ldfld, _field);
+                        _body.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
                         _body.Emit(OpCodes.Stelem_Ref);
                     }
+                    _constructor.Emit(OpCodes.Ldarg_0);
+                    _constructor.Emit(OpCodes.Ldarg_2);
+                    _constructor.Emit(OpCodes.Stfld, _field = _type.DefineField(Composition<X>.Lookup<T>.Factory.Length.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
                     _constructor.Emit(OpCodes.Ret);
                     _body.Emit(OpCodes.Dup);
                     _body.Emit(OpCodes.Ldc_I4, Composition<X>.Lookup<T>.Factory.Length);
                     _body.Emit(OpCodes.Ldarg_0);
-                    _body.Emit(OpCodes.Ldfld, _field = _type.DefineField(Composition<X>.Lookup<T>.Factory.Length.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
+                    _body.Emit(OpCodes.Ldfld, _field);
+                    _body.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
                     _body.Emit(OpCodes.Stelem_Ref);
                     _body.Emit(OpCodes.Ret);
                     _factory = _type.CreateType();
