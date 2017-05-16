@@ -10,6 +10,7 @@ using Autofac;
 using Ninject;
 using System.Threading;
 using System.Reflection;
+using Benchmaker;
 
 namespace Puresharp.SimpleInjectorBattle
 {
@@ -20,117 +21,12 @@ namespace Puresharp.SimpleInjectorBattle
     public class Calculator : ICalculator
     {
     }
-
-    static public class T1
-    {
-        static public int Index = -1;
-    }
-
-    static public class TTT<T>
-        where T : class
-    {
-        static public Func<T>[] Buffer;
-    }
-
-    public class Container1 : IComposition
-    {
-        private object[] m_Instance;
-
-        public void Add<T>(params T[] array) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(Type type) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(MethodInfo method) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(ConstructorInfo constructor) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(IEnumerable<T> enumerable) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(T instance) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(Func<T> ii)
-            where T : class
-        {
-            TTT<T>.Buffer = new Func<T>[] { ii };
-        }
-
-        public void Add<T>(MethodInfo method, Lifetime lifetime) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(ConstructorInfo constructor, Lifetime lifetime) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(Type type, Lifetime lifetime) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Add<T>(Func<T> instance, Lifetime lifetime) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public T[] Array<T>() where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<T> Enumerable<T>() where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        private int p = 0;
-
-        public T Instance<T>()
-            where T : class
-        {
-            return TTT<T>.Buffer[this.p]();
-        }
-    }
-
+    
     static public class Program
     {
         [STAThread]
         static public void Main(string[] args)
         {
-            //Composition<object>.Add<ICalculator>(() => new Calculator());
-
-            //var t1 = Composition<object>.Enumerable<ICalculator>();
-
-            //Composition<object>.Add<ICalculator>(() => new Calculator());
-            ////Composition<object>.Add<ICalculator>(() => new Calculator());
-            ////Composition<object>.Add<ICalculator>(() => new Calculator());
-
-            //var t = Composition<object>.Array<ICalculator>();
-
             var _benchmark = new Benchmark(() => new Action(() => new Calculator()));
             _benchmark.Add("SimpleInjector", () => 
             {
@@ -149,33 +45,9 @@ namespace Puresharp.SimpleInjectorBattle
                 _container.Add<ICalculator>(() => new Calculator());
                 return () => Composition.Lookup<ICalculator>.Instance(_container);
             });
-            _benchmark.Add("Puresharp [interface]", () =>
-            {
-                var _container = new Composition() as IComposition;
-                _container.Add<ICalculator>(() => new Calculator());
-                return () => _container.Instance<ICalculator>();
-            });
-            _benchmark.Add("Puresharp [X]", () =>
-            {
-                var _container = new Container1() as IComposition;
-                _container.Add<ICalculator>(() => new Calculator());
-                return () => _container.Instance<ICalculator>();
-            });
-            //_benchmark.Add("Puresharp [X2]", () =>
-            //{
-            //    var _container = Composition.Create();
-            //    _container.Add<ICalculator>(() => new Calculator());
-            //    return () => _container.Instance<ICalculator>();
-            //});
             _benchmark.Add("DryIoc", () => 
             {
                 var _container = new DryIoc.Container();
-                _container.Register<ICalculator, Calculator>();
-                return () => _container.Resolve<ICalculator>();
-            });
-            _benchmark.Add("DryIoc [interface]", () =>
-            {
-                var _container = new DryIoc.Container() as DryIoc.IContainer;
                 _container.Register<ICalculator, Calculator>();
                 return () => _container.Resolve<ICalculator>();
             });

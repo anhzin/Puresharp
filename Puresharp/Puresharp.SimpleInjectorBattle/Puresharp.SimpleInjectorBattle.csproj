@@ -41,8 +41,12 @@
       <HintPath>..\packages\Autofac.4.5.0\lib\net45\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Grace, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b7d24c6367970497, processorArchitecture=MSIL">
-      <HintPath>..\packages\Grace.6.0.1\lib\net45\Grace.dll</HintPath>
+    <Reference Include="Benchmaker, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Benchmaker.1.0.3\lib\Benchmaker.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Grace, Version=6.1.0.0, Culture=neutral, PublicKeyToken=b7d24c6367970497, processorArchitecture=MSIL">
+      <HintPath>..\packages\Grace.6.1.0\lib\net45\Grace.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -126,8 +130,8 @@
       <HintPath>..\packages\System.Threading.Thread.4.3.0\lib\net46\System.Threading.Thread.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="System.ValueTuple, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
@@ -154,7 +158,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchmark.cs" />
     <Compile Include="DryIoc\AsyncExecutionFlowScopeContext.cs" />
     <Compile Include="DryIoc\Container.cs" />
     <Compile Include="DryIoc\FastExpressionCompiler.cs" />

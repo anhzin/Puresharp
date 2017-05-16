@@ -91,8 +91,8 @@ namespace Puresharp
             static internal Func<T[]> m_Array = Composition<X>.Lookup<T>.Empty;
             static internal int Index = -1;
             static internal object Handle = new object();
-            static internal Type[] Type = new Type[0];
-            static internal Func<object, Func<T>, Func<T[]>>[] Factory = new Func<object, Func<T>, Func<T[]>>[0];
+            static internal KeyValuePair<Type, FieldBuilder[]>[] Type = new KeyValuePair<Type, FieldBuilder[]>[0];
+            //static internal Func<object, Func<T>, Func<T[]>>[] Factory = new Func<object, Func<T>, Func<T[]>>[0];
 
             [Browsable(false)]
             [EditorBrowsable(EditorBrowsableState.Never)]

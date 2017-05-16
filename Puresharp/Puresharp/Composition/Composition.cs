@@ -430,17 +430,6 @@ namespace Puresharp
             Composition<X>.Add(() => instance);
         }
 
-        static public void Add<T>(params T[] array)
-            where T : class
-        {
-            if (array == null || array.Length == 0) { return; }
-            for (var _index = 0; _index < array.Length; _index++)
-            {
-                var _instance = array[_index];
-                Composition<X>.Add<T>(new Func<T>(() => _instance));
-            }
-        }
-
         static public void Add<T>(IEnumerable<T> enumerable)
             where T : class
         {
@@ -453,9 +442,11 @@ namespace Puresharp
         {
             lock (Composition<X>.Lookup<T>.Handle)
             {
-                var _type = Composition<X>.Lookup<T>.Module.DefineType(Composition<X>.Lookup<T>.Factory.Length.ToString(), TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
-                var _body = null as ILGenerator;
+                var _type = Composition<X>.Lookup<T>.Module.DefineType(Composition<X>.Lookup<T>.Type.Length.ToString(), TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
+                var _array = null as ILGenerator;
+                var _enumerable = null as ILGenerator;
                 var _field = null as FieldBuilder;
+                var _fields = null as FieldBuilder[];
                 var _constructor = null as ILGenerator;
                 var _factory = null as Type;
                 var _method = null as DynamicMethod;
@@ -463,134 +454,78 @@ namespace Puresharp
                 if (Composition<X>.Lookup<T>.m_Instance == Composition<X>.Lookup<T>.None)
                 {
                     Composition<X>.Lookup<T>.m_Instance = instance;
-                    _constructor = _type.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { Runtime<object>.Type, Runtime<Func<T>>.Type }).GetILGenerator();
+                    _fields = new FieldBuilder[1];
+                    _constructor = _type.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { Runtime<Func<T>>.Type }).GetILGenerator();
                     _constructor.Emit(OpCodes.Ldarg_0);
-                    _constructor.Emit(OpCodes.Ldarg_2);
-                    _constructor.Emit(OpCodes.Stfld, _field = _type.DefineField("0", Runtime<Func<T>>.Type, FieldAttributes.Public));
+                    _constructor.Emit(OpCodes.Ldarg_1);
+                    _constructor.Emit(OpCodes.Stfld, _field = _fields[0] = _type.DefineField("0", Runtime<Func<T>>.Type, FieldAttributes.Public));
                     _constructor.Emit(OpCodes.Ret);
-                    _body = _type.DefineMethod("Array", MethodAttributes.Public, CallingConventions.HasThis, Runtime<Func<T[]>>.Type, Type.EmptyTypes).GetILGenerator();
-                    _body.Emit(OpCodes.Ldc_I4_1);
-                    _body.Emit(OpCodes.Newarr, Runtime<T>.Type);
-                    _body.Emit(OpCodes.Dup);
-                    _body.Emit(OpCodes.Ldc_I4_0);
-                    _body.Emit(OpCodes.Ldarg_0);
-                    _body.Emit(OpCodes.Ldfld, _field);
-                    _body.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
-                    _body.Emit(OpCodes.Stelem_Ref);
-                    _body.Emit(OpCodes.Ret);
+                    _array = _type.DefineMethod("Array", MethodAttributes.Public, CallingConventions.HasThis, Runtime<T[]>.Type, Type.EmptyTypes).GetILGenerator();
+                    _array.Emit(OpCodes.Ldc_I4_1);
+                    _array.Emit(OpCodes.Newarr, Runtime<T>.Type);
+                    _array.Emit(OpCodes.Dup);
+                    _array.Emit(OpCodes.Ldc_I4_0);
+                    _array.Emit(OpCodes.Ldarg_0);
+                    _array.Emit(OpCodes.Ldfld, _field);
+                    _array.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
+                    _array.Emit(OpCodes.Stelem_Ref);
+                    _array.Emit(OpCodes.Ret);
                     _factory = _type.CreateType();
-                    _method = new DynamicMethod(string.Empty, Runtime<Func<T[]>>.Type, new Type[] { _factory, Runtime<object>.Type, Runtime<Func<T>>.Type }, _factory, true);
-                    _body = _method.GetILGenerator();
-                    _body.Emit(OpCodes.Ldarg_1);
-                    _body.Emit(OpCodes.Ldarg_2);
-                    _body.Emit(OpCodes.Newobj, _factory.GetConstructors()[0]);
-                    _body.Emit(OpCodes.Ldftn, _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]);
-                    _body.Emit(OpCodes.Newobj, Runtime<Func<T[]>>.Type.GetConstructors().Single());
-                    _body.Emit(OpCodes.Ret);
-                    _delegate = _method.CreateDelegate(Runtime<Func<object, Func<T>, Func<T[]>>>.Type, null) as Func<object, Func<T>, Func<T[]>>;
-                    Composition<X>.Lookup<T>.Factory = new Func<object, Func<T>, Func<T[]>>[] { _delegate };
-                    Composition<X>.Lookup<T>.m_Array = _delegate(null, instance);
+                    Composition<X>.Lookup<T>.Type = new KeyValuePair<Type, FieldBuilder[]>[] { new KeyValuePair<Type, FieldBuilder[]>(_type, _fields) };
+                    Composition<X>.Lookup<T>.m_Array = Delegate.CreateDelegate(Runtime<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { instance }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
                 }
                 else
                 {
                     Composition<X>.Lookup<T>.m_Instance = Composition<X>.Lookup<T>.Multiple;
-                    _constructor = _type.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { Composition<X>.Lookup<T>.Module.GetType((Composition<X>.Lookup<T>.Factory.Length - 1).ToString()), Runtime<Func<T>>.Type }).GetILGenerator();
-                    _body = _type.DefineMethod("Array", MethodAttributes.Public, CallingConventions.HasThis, Runtime<Func<T[]>>.Type, Type.EmptyTypes).GetILGenerator();
-                    _body.Emit(OpCodes.Ldc_I4, Composition<X>.Lookup<T>.Factory.Length + 1);
-                    _body.Emit(OpCodes.Newarr, Runtime<T>.Type);
-                    for (var _index = 0; _index < Composition<X>.Lookup<T>.Factory.Length; _index++)
+                    _fields = new FieldBuilder[Composition<X>.Lookup<T>.Type.Length + 1];
+                    _constructor = _type.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { Composition<X>.Lookup<T>.Type[Composition<X>.Lookup<T>.Type.Length - 1].Key, Runtime<Func<T>>.Type }).GetILGenerator();
+                    _array = _type.DefineMethod("Array", MethodAttributes.Public, CallingConventions.HasThis, Runtime<T[]>.Type, Type.EmptyTypes).GetILGenerator();
+                    _array.Emit(OpCodes.Ldc_I4, Composition<X>.Lookup<T>.Type.Length + 1);
+                    _array.Emit(OpCodes.Newarr, Runtime<T>.Type);
+                    for (var _index = 0; _index < Composition<X>.Lookup<T>.Type.Length; _index++)
                     {
                         _constructor.Emit(OpCodes.Ldarg_0);
                         _constructor.Emit(OpCodes.Ldarg_1);
-                        _constructor.Emit(OpCodes.Ldfld, Composition<X>.Lookup<T>.Module.GetType((Composition<X>.Lookup<T>.Factory.Length - 1).ToString()).GetField(_index.ToString()));
-                        _constructor.Emit(OpCodes.Stfld, _field = _type.DefineField(_index.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
-                        _body.Emit(OpCodes.Dup);
+                        _constructor.Emit(OpCodes.Ldfld, Composition<X>.Lookup<T>.Module.GetType((Composition<X>.Lookup<T>.Type.Length - 1).ToString()).GetField(_index.ToString()));
+                        _constructor.Emit(OpCodes.Stfld, _field = _fields[_index] = _type.DefineField(_index.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
+                        _array.Emit(OpCodes.Dup);
                         switch (_index)
                         {
-                            case 0: _body.Emit(OpCodes.Ldc_I4_0); break;
-                            case 1: _body.Emit(OpCodes.Ldc_I4_1); break;
-                            case 2: _body.Emit(OpCodes.Ldc_I4_2); break;
-                            case 3: _body.Emit(OpCodes.Ldc_I4_3); break;
-                            case 4: _body.Emit(OpCodes.Ldc_I4_4); break;
-                            case 5: _body.Emit(OpCodes.Ldc_I4_5); break;
-                            case 6: _body.Emit(OpCodes.Ldc_I4_6); break;
-                            case 7: _body.Emit(OpCodes.Ldc_I4_7); break;
-                            case 8: _body.Emit(OpCodes.Ldc_I4_8); break;
-                            default: _body.Emit(OpCodes.Ldc_I4_S, _index); break;
+                            case 0: _array.Emit(OpCodes.Ldc_I4_0); break;
+                            case 1: _array.Emit(OpCodes.Ldc_I4_1); break;
+                            case 2: _array.Emit(OpCodes.Ldc_I4_2); break;
+                            case 3: _array.Emit(OpCodes.Ldc_I4_3); break;
+                            case 4: _array.Emit(OpCodes.Ldc_I4_4); break;
+                            case 5: _array.Emit(OpCodes.Ldc_I4_5); break;
+                            case 6: _array.Emit(OpCodes.Ldc_I4_6); break;
+                            case 7: _array.Emit(OpCodes.Ldc_I4_7); break;
+                            case 8: _array.Emit(OpCodes.Ldc_I4_8); break;
+                            default: _array.Emit(OpCodes.Ldc_I4_S, _index); break;
                         }
-                        _body.Emit(OpCodes.Ldarg_0);
-                        _body.Emit(OpCodes.Ldfld, _field);
-                        _body.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
-                        _body.Emit(OpCodes.Stelem_Ref);
+                        _array.Emit(OpCodes.Ldarg_0);
+                        _array.Emit(OpCodes.Ldfld, _field);
+                        _array.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
+                        _array.Emit(OpCodes.Stelem_Ref);
                     }
                     _constructor.Emit(OpCodes.Ldarg_0);
                     _constructor.Emit(OpCodes.Ldarg_2);
-                    _constructor.Emit(OpCodes.Stfld, _field = _type.DefineField(Composition<X>.Lookup<T>.Factory.Length.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
+                    _constructor.Emit(OpCodes.Stfld, _field = _fields[Composition<X>.Lookup<T>.Type.Length] = _type.DefineField(Composition<X>.Lookup<T>.Type.Length.ToString(), Runtime<Func<T>>.Type, FieldAttributes.Public));
                     _constructor.Emit(OpCodes.Ret);
-                    _body.Emit(OpCodes.Dup);
-                    _body.Emit(OpCodes.Ldc_I4, Composition<X>.Lookup<T>.Factory.Length);
-                    _body.Emit(OpCodes.Ldarg_0);
-                    _body.Emit(OpCodes.Ldfld, _field);
-                    _body.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
-                    _body.Emit(OpCodes.Stelem_Ref);
-                    _body.Emit(OpCodes.Ret);
+                    _array.Emit(OpCodes.Dup);
+                    _array.Emit(OpCodes.Ldc_I4, Composition<X>.Lookup<T>.Type.Length);
+                    _array.Emit(OpCodes.Ldarg_0);
+                    _array.Emit(OpCodes.Ldfld, _field);
+                    _array.Emit(OpCodes.Call, Runtime<Func<T>>.Method(_Function => _Function.Invoke()));
+                    _array.Emit(OpCodes.Stelem_Ref);
+                    _array.Emit(OpCodes.Ret);
                     _factory = _type.CreateType();
-                    _method = new DynamicMethod(string.Empty, Runtime<Func<T[]>>.Type, new Type[] { _factory, Runtime<object>.Type, Runtime<Func<T>>.Type }, _factory, true);
-                    _body = _method.GetILGenerator();
-                    _body.Emit(OpCodes.Ldarg_1);
-                    _body.Emit(OpCodes.Ldarg_2);
-                    _body.Emit(OpCodes.Newobj, _factory.GetConstructors()[0]);
-                    _body.Emit(OpCodes.Ldftn, _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]);
-                    _body.Emit(OpCodes.Newobj, Runtime<Func<T[]>>.Type.GetConstructors().Single());
-                    _body.Emit(OpCodes.Ret);
-                    _delegate = _method.CreateDelegate(Runtime<Func<object, Func<T>, Func<T[]>>>.Type, null) as Func<object, Func<T>, Func<T[]>>;
-                    var _buffer = new Func<object, Func<T>, Func<T[]>>[Composition<X>.Lookup<T>.Factory.Length + 1];
-                    for (var _index = 0; _index < Composition<X>.Lookup<T>.Factory.Length; _index++) { _buffer[_index] = Composition<X>.Lookup<T>.Factory[_index]; }
-                    _buffer[Composition<X>.Lookup<T>.Factory.Length] = _delegate;
-                    Composition<X>.Lookup<T>.Factory = _buffer;
-                    Composition<X>.Lookup<T>.m_Array = _delegate(Composition<X>.Lookup<T>.Array.Target, instance);
+                    var _buffer = new KeyValuePair<Type, FieldBuilder[]>[Composition<X>.Lookup<T>.Type.Length + 1];
+                    for (var _index = 0; _index < Composition<X>.Lookup<T>.Type.Length; _index++) { _buffer[_index] = Composition<X>.Lookup<T>.Type[_index]; }
+                    _buffer[Composition<X>.Lookup<T>.Type.Length] = new KeyValuePair<Type, FieldBuilder[]>(_type, _fields);
+                    Composition<X>.Lookup<T>.Type = _buffer;
+                    Composition<X>.Lookup<T>.m_Array = Delegate.CreateDelegate(Runtime<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { Composition<X>.Lookup<T>.Array.Target, instance }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
                 }
             }
-            //while (true)
-            //{
-            //    var _instance = Composition<X>.Lookup<T>.m_Instance;
-            //    if (_instance == Composition<X>.Lookup<T>.None)
-            //    {
-            //        if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Instance, instance, _instance) == _instance)
-            //        {
-            //            Data.Linkup<Func<T>>.Update(ref Composition<X>.Lookup<T>.Linkup, instance);
-            //            while (true)
-            //            {
-            //                var _array = Composition<X>.Lookup<T>.m_Array;
-            //                var _linkup = Composition<X>.Lookup<T>.Linkup;
-            //                if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Array, Composition<X>.Lookup<T>.Empty, _array) == _array) { return; } }
-            //                else
-            //                {
-            //                    var _activation = (Func<T>[])_linkup;
-            //                    if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Array, new Func<T[]>(() => { var _buffer = new T[_activation.Length]; for (var _index = 0; _index < _buffer.Length; _index++) { _buffer[_index] = _activation[_index](); } return _buffer; }), _array) == _array) { return; }
-            //                }
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Instance, Composition<X>.Lookup<T>.Multiple, _instance) == _instance)
-            //        {
-            //            Data.Linkup<Func<T>>.Update(ref Composition<X>.Lookup<T>.Linkup, instance);
-            //            while (true)
-            //            {
-            //                var _array = Composition<X>.Lookup<T>.m_Array;
-            //                var _linkup = Composition<X>.Lookup<T>.Linkup;
-            //                if (_linkup == null) { if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Array, Composition<X>.Lookup<T>.Empty, _array) == _array) { return; } }
-            //                else
-            //                {
-            //                    var _activation = (Func<T>[])_linkup;
-            //                    if (Interlocked.CompareExchange(ref Composition<X>.Lookup<T>.m_Array, new Func<T[]>(() => { var _buffer = new T[_activation.Length]; for (var _index = 0; _index < _buffer.Length; _index++) { _buffer[_index] = _activation[_index](); } return _buffer; }), _array) == _array) { return; }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
         }
 
         static public void Add<T>(Type type)
@@ -694,11 +629,7 @@ namespace Puresharp
                 (lifetime as Lifetime.ICycle).Establish<Composition.Scope<T>>(() => _scope = new Composition.Scope<T>(instance));
                 Composition<X>.Add<T>(new Func<T>(() => _scope.Instance));
             }
-            else
-            {
-                //TODO!
-                throw new NotSupportedException();
-            }
+            else { throw new NotSupportedException(); }
         }
         
         static public void Add<T>(Type type, Lifetime lifetime)
