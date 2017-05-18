@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Addon.cs" />
     <Compile Include="Advice\Advice.cs" />
+    <Compile Include="Advice\Boundary\Advice.Boundary.Legacy.cs" />
     <Compile Include="Advice\Boundary\Advice.Boundary.cs" />
     <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.Factory.cs" />
     <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.cs" />

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime;
+using System.Runtime.CompilerServices;
 
 namespace Puresharp
 {
@@ -50,6 +52,7 @@ namespace Puresharp
                 private readonly Dictionary<Aspect, Activity> m_Dictionary;
                 private readonly IntPtr m_Pointer;
                 private readonly FieldInfo m_Field;
+                private readonly FieldInfo m_Boundary;
 
                 internal Entry(Type type, MethodBase method, Activity activity)
                 {
@@ -61,21 +64,38 @@ namespace Puresharp
                     this.m_Field = Aspect.Directory.Entry.Pointer(method);
                     this.m_Pointer = (IntPtr)this.m_Field.GetValue(null);
                     this.m_Sequence = new LinkedList<MethodInfo>();
+                    var _attribute = method.Attribute<AsyncStateMachineAttribute>();
+                    if (_attribute == null) { return; }
+                    this.m_Boundary = _attribute.StateMachineType.GetField("<Factory>", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly);
                 }
 
                 private void Update()
                 {
                     var _aspectization = this.m_Aspectization.SelectMany(_Aspect => _Aspect.Advise(this.Method)).ToArray();
-                    var _pointer = this.m_Pointer;
-                    this.m_Sequence.Clear();
-                    foreach (var _advice in _aspectization)
+                    if (this.m_Boundary == null)
                     {
-                        if (_advice == null) { continue; }
-                        var _method = _advice.Decorate(this.Method, _pointer);
-                        this.m_Sequence.AddLast(_method);
-                        if (_method != null) { _pointer = _method.GetFunctionPointer(); }
+                        var _pointer = this.m_Pointer;
+                        this.m_Sequence.Clear();
+                        foreach (var _advice in _aspectization)
+                        {
+                            if (_advice == null) { continue; }
+                            var _method = _advice.Decorate(this.Method, _pointer);
+                            this.m_Sequence.AddLast(_method);
+                            if (_method != null) { _pointer = _method.GetFunctionPointer(); }
+                        }
+                        this.m_Field.SetValue(null, _pointer);
                     }
-                    this.m_Field.SetValue(null, _pointer);
+                    else
+                    {
+                        this.m_Sequence.Clear();
+                        var _boundary = this.m_Boundary.GetValue(null) as Advice.Boundary.IFactory;
+                        foreach (var _advice in _aspectization)
+                        {
+                            if (_advice == null) { continue; }
+                            _boundary = _advice.Decorate(this.Method, _boundary);
+                        }
+                        this.m_Field.SetValue(null, _boundary);
+                    }
                 }
 
                 public void Add(Aspect aspect)

@@ -15,8 +15,10 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Around(this Advice.Style.IBasic basic, Action<Action> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            //check if asynchronous : failed
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _routine = new Closure.Routine(_Pointer, _signature, _type);
@@ -59,8 +61,10 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Around(this Advice.Style.IBasic basic, Action<object, object[], Action> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            //check if asynchronous : failed
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _routine = new Closure.Routine(_Pointer, _signature, _type);
@@ -105,8 +109,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Around(this Advice.Style.IBasic basic, Func<object, object[], Func<object>, object> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _function = new Closure.Function(_Pointer, _signature, _type);
@@ -140,8 +145,9 @@ namespace Puresharp
         static public Advice Around<T>(this Advice.Style.IBasic basic)
             where T : class, IDisposable, new()
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);

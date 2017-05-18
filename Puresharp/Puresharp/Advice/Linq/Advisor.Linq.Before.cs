@@ -18,8 +18,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Before(this Advice.Style.ILinq linq, Expression advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 if (advice == null) { return null; }
                 var _type = _Method.ReturnType();
@@ -42,8 +43,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Before(this Advice.Style.ILinq linq, Func<Expression, IEnumerable<Expression>, Expression> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _parameters = new Collection<ParameterExpression>(_signature.Select(_Type => Expression.Parameter(_Type)).ToArray());
                 var _advice = _signature.Instance == null ? advice(null, _parameters) : advice(_parameters[0], _parameters.Skip(1));

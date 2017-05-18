@@ -14,8 +14,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Basic.IAfter basic, Action advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
@@ -61,8 +62,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Basic.IAfter basic, Action<object, object[]> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _type = _Method.ReturnType();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
@@ -110,8 +112,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Basic.IAfter basic, Action<object, object[], Exception> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _type = _Method.ReturnType();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);

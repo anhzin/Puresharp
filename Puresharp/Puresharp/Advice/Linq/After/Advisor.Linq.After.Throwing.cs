@@ -18,8 +18,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Linq.IAfter linq, Expression advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _exception = Expression.Parameter(Runtime<Exception>.Type);
                 if (advice == null) { return null; }
@@ -66,8 +67,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Linq.IAfter linq, Func<Expression, IEnumerable<Expression>, Expression> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _parameters = new Collection<ParameterExpression>(_signature.Select(_Type => Expression.Parameter(_Type)).ToArray());
                 var _exception = Expression.Parameter(Runtime<Exception>.Type);
@@ -118,8 +120,9 @@ namespace Puresharp
         /// <returns>Advice</returns>
         static public Advice Throwing(this Advice.Style.Linq.IAfter linq, Func<Expression, IEnumerable<Expression>, Expression, Expression> advice)
         {
-            return new Advice((_Method, _Pointer) =>
+            return new Advice((_Method, _Pointer, _Boundary) =>
             {
+                if (_Boundary != null) { throw new NotSupportedException(); }
                 var _signature = _Method.Signature();
                 var _parameters = new Collection<ParameterExpression>(_signature.Select(_Type => Expression.Parameter(_Type)).ToArray());
                 var _exception = Expression.Parameter(Runtime<Exception>.Type);
