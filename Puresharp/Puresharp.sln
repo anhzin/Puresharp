@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Puresharp.Composition", "Pu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Puresharp.Reflection.Optimizer", "Puresharp.Reflection.Optimizer\Puresharp.Reflection.Optimizer.csproj", "{C57DAC89-2E4A-4545-9E62-39845846875D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Puresharp.Persistence", "Puresharp.Persistence\Puresharp.Persistence.csproj", "{B33B342D-C24B-4890-8500-5019EE7CA083}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C57DAC89-2E4A-4545-9E62-39845846875D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C57DAC89-2E4A-4545-9E62-39845846875D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C57DAC89-2E4A-4545-9E62-39845846875D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B33B342D-C24B-4890-8500-5019EE7CA083}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B33B342D-C24B-4890-8500-5019EE7CA083}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B33B342D-C24B-4890-8500-5019EE7CA083}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B33B342D-C24B-4890-8500-5019EE7CA083}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
