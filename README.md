@@ -1,4 +1,4 @@
-# Puresharp
+# Puresharp API .NET 4.0+
 Puresharp is a set of features for .NET 4.0+ to help to build a software architecture as cleaner as possible without sacrificing performance. In another hand it provide template to develop microservice with predefined data access design for a standalone peer to peer highly available local cluster.
 
 ## Features
