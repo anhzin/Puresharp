@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using DryIoc;
-using Autofac;
-using Ninject;
-using System.Threading;
-using System.Reflection;
 using Benchmaker;
+using Autofac;
+using DryIoc;
+using Ninject;
+using Castle.Windsor;
+using Microsoft.Practices.Unity;
 
 namespace Puresharp.SimpleInjectorBattle
 {
@@ -18,7 +12,16 @@ namespace Puresharp.SimpleInjectorBattle
     {
     }
 
+    [System.Composition.Export(typeof(ICalculator))]
     public class Calculator : ICalculator
+    {
+    }
+
+    public class Primary
+    {
+    }
+
+    public class Secondary
     {
     }
     
@@ -34,16 +37,49 @@ namespace Puresharp.SimpleInjectorBattle
                 _container.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
                 return () => _container.GetInstance<ICalculator>();
             });
-            _benchmark.Add("Puresharp [static]", () => 
+            _benchmark.Add("Puresharp [static]", () =>
             {
-                Composition<object>.Add<ICalculator>(() => new Calculator());
-                return () => Composition<object>.Lookup<ICalculator>.Instance();
+                Puresharp.Composition.Container<Secondary>.Add<ICalculator>(() => new Calculator());
+                return () => Puresharp.Composition.Container<Secondary>.Instance<ICalculator>();
+            });
+            _benchmark.Add("Puresharp [static] with optimizer", () => 
+            {
+                Puresharp.Composition.Container<Primary>.Add<ICalculator>(() => new Calculator());
+                return () => Puresharp.Composition.Container<Primary>.Lookup<ICalculator>.Instance();
             });
             _benchmark.Add("Puresharp [instance]", () =>
             {
-                var _container = new Composition();
+                var _container = new Puresharp.Composition.Container();
                 _container.Add<ICalculator>(() => new Calculator());
-                return () => Composition.Lookup<ICalculator>.Instance(_container);
+                return () => _container.Instance<ICalculator>();
+            });
+            _benchmark.Add("Puresharp [instance] with optimizer", () =>
+            {
+                var _container = new Puresharp.Composition.Container();
+                _container.Add<ICalculator>(() => new Calculator());
+                return () => Puresharp.Composition.Container.Lookup<ICalculator>.Instance(_container);
+            });
+            _benchmark.Add("MEF", () =>
+            {
+                var _container = new System.Composition.Hosting.ContainerConfiguration().WithAssembly(typeof(ICalculator).Assembly).CreateContainer();
+                return () => _container.GetExport<ICalculator>();
+            });
+            _benchmark.Add("Castle Windsor", () =>
+            {
+                var _container = new WindsorContainer();
+                _container.Register(Castle.MicroKernel.Registration.Component.For<ICalculator>().ImplementedBy<Calculator>());
+                return () => _container.Resolve<ICalculator>();
+            });
+            _benchmark.Add("Unity", () =>
+            {
+                var _container = new UnityContainer();
+                _container.RegisterType<ICalculator, Calculator>();
+                return () => _container.Resolve<ICalculator>();
+            });
+            _benchmark.Add("StuctureMap", () =>
+            {
+                var _container = new StructureMap.Container(_Builder => _Builder.For<ICalculator>().Use<Calculator>());
+                return () => _container.GetInstance<ICalculator>();
             });
             _benchmark.Add("DryIoc", () => 
             {
