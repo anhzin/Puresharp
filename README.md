@@ -4,7 +4,7 @@ Puresharp is a set of features for .NET 4.0+ to help to build a software archite
 ## Features
 - Inversion of Control with IOC Container pattern
 - Aspect Oriented Programming
-- Safe Reflection API
+- Safe Reflection API [![NuGet](https://img.shields.io/nuget/v/puresharp.reflection.svg)](https://www.nuget.org/packages/Puresharp.Reflection)
 - Compile time extension to suppress boilerplate code
 - Integrated common serializer
 - Linq Data Access pattern
