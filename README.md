@@ -9,4 +9,4 @@ Puresharp is a set of features for .NET 4.0+ to help to build a software archite
 - Integrated common serializer
 - Linq Data Access pattern
 - Mocking API
-- Peer to peer WCF microservice design for standalone fractal architecture : broker, service discovery, load balancing, logging & APM pre-agent
+- Peer to peer WCF microservice design for standalone fractal architecture : configuration server, broker, service discovery, load balancing, logging & APM pre-agent
