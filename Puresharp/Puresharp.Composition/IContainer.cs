@@ -19,14 +19,6 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add array of instances as multiton.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="array">Array</param>
-        void Add<T>(params T[] array)
-            where T : class;
-
-        /// <summary>
         /// Add enumerable of instances as multiton.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
@@ -71,7 +63,7 @@ namespace Puresharp.Composition
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="factory">Factory</param>
-        /// <param name="lifetime"></param>
+        /// <param name="lifetime">Lifetime</param>
         void Add<T>(Func<T> factory, Lifetime lifetime)
             where T : class;
 

@@ -63,7 +63,10 @@ namespace Puresharp.Composition
         }
 
         private int m_Index;
-
+        
+        /// <summary>
+        /// Instantiate a container.
+        /// </summary>
         public Container()
         {
             lock (Container.m_Handle)
@@ -73,23 +76,22 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add instance as singleton.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="instance">Instance</param>
         public void Add<T>(T instance)
             where T : class
         {
             this.Add(() => instance);
         }
 
-        public void Add<T>(params T[] array)
-            where T : class
-        {
-            if (array == null || array.Length == 0) { return; }
-            for (var _index = 0; _index < array.Length; _index++)
-            {
-                var _instance = array[_index];
-                this.Add<T>(new Func<T>(() => _instance));
-            }
-        }
-
+        /// <summary>
+        /// Add enumerable of instances as multiton.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="enumerable">Enumerable</param>
         public void Add<T>(IEnumerable<T> enumerable)
             where T : class
         {
@@ -97,7 +99,12 @@ namespace Puresharp.Composition
             foreach (var _instance in enumerable) { this.Add<T>(new Func<T>(() => _instance)); }
         }
 
-        public void Add<T>(Func<T> instance)
+        /// <summary>
+        /// Add factory to specify how to create instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="factory">Factory</param>
+        public void Add<T>(Func<T> factory)
             where T : class
         {
             var _container = Container.Lookup<T>.Buffer[this.m_Index];
@@ -106,9 +113,9 @@ namespace Puresharp.Composition
                 var _instance = _container.Instance;
                 if (_instance == Container.Container1<T>.None)
                 {
-                    if (Interlocked.CompareExchange(ref _container.Instance, instance, _instance) == _instance)
+                    if (Interlocked.CompareExchange(ref _container.Instance, factory, _instance) == _instance)
                     {
-                        Linkup<Func<T>>.Update(ref _container.Linkup, instance);
+                        Linkup<Func<T>>.Update(ref _container.Linkup, factory);
                         while (true)
                         {
                             var _array = _container.Array;
@@ -126,7 +133,7 @@ namespace Puresharp.Composition
                 {
                     if (Interlocked.CompareExchange(ref _container.Instance, Container.Container1<T>.Multiple, _instance) == _instance)
                     {
-                        Linkup<Func<T>>.Update(ref _container.Linkup, instance);
+                        Linkup<Func<T>>.Update(ref _container.Linkup, factory);
                         while (true)
                         {
                             var _array = _container.Array;
@@ -143,6 +150,11 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add type to specifiy which type to create instance as volatile
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="type">Type</param>
         public void Add<T>(Type type)
             where T : class
         {
@@ -167,6 +179,11 @@ namespace Puresharp.Composition
             else { this.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile()); }
         }
 
+        /// <summary>
+        /// Add constructor to specify how to create instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="constructor">Constructor</param>
         public void Add<T>(ConstructorInfo constructor)
             where T : class
         {
@@ -187,6 +204,11 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="method">Method</param>
         public void Add<T>(MethodInfo method)
             where T : class
         {
@@ -213,10 +235,16 @@ namespace Puresharp.Composition
             }
         }
 
-        public void Add<T>(Func<T> instance, Lifetime lifetime)
+        /// <summary>
+        /// Add factory to specify how to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="factory">Factory</param>
+        /// <param name="lifetime">Lifetime</param>
+        public void Add<T>(Func<T> factory, Lifetime lifetime)
             where T : class
         {
-            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { this.Add<T>(instance); }
+            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { this.Add<T>(factory); }
             else if (object.ReferenceEquals(lifetime, Lifetime.Singleton))
             {
                 var _container = Container.Lookup<T>.Buffer[this.m_Index];
@@ -229,11 +257,11 @@ namespace Puresharp.Composition
                     {
                         if (object.Equals(_return, null))
                         {
-                            var _singleton = instance();
+                            var _singleton = factory();
                             _return = new Func<T>(() => _singleton);
                             Interlocked.CompareExchange(ref _container.Instance, _return, _instance);
                             var _linkup = _container.Linkup;
-                            if (_linkup != null) { _linkup.Update(instance, _return); }
+                            if (_linkup != null) { _linkup.Update(factory, _return); }
                             return _singleton;
                         }
                         return _return();
@@ -247,6 +275,12 @@ namespace Puresharp.Composition
             else { throw new NotSupportedException(); }
         }
 
+        /// <summary>
+        /// Add type to specifiy which type to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="type">Type</param>
+        /// <param name="lifetime">Lifetime</param>
         public void Add<T>(Type type, Lifetime lifetime)
             where T : class
         {
@@ -270,6 +304,12 @@ namespace Puresharp.Composition
             else { this.Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile(), lifetime); }
         }
 
+        /// <summary>
+        /// Add constructor to specify how to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="constructor">Constructor</param>
+        /// <param name="lifetime">Lifetime</param>
         public void Add<T>(ConstructorInfo constructor, Lifetime lifetime)
             where T : class
         {
@@ -290,6 +330,12 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="method">Method</param>
+        /// <param name="lifetime">Lifetime</param>
         public void Add<T>(MethodInfo method, Lifetime lifetime)
             where T : class
         {
@@ -316,6 +362,11 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Obtain a single instance.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Instance</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]
@@ -325,14 +376,19 @@ namespace Puresharp.Composition
             return Container.Lookup<T>.Buffer[this.m_Index].Instance();
         }
 
-        [DebuggerNonUserCode]
-        [DebuggerStepThrough]
-        [DebuggerHidden]
-        T IContainer.Instance<T>()
-        {
-            return Container.Lookup<T>.Buffer[this.m_Index].Instance();
-        }
+        //[DebuggerNonUserCode]
+        //[DebuggerStepThrough]
+        //[DebuggerHidden]
+        //T IContainer.Instance<T>()
+        //{
+        //    return Container.Lookup<T>.Buffer[this.m_Index].Instance();
+        //}
 
+        /// <summary>
+        /// Obtain enumerable of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Enumerable</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]
@@ -342,6 +398,24 @@ namespace Puresharp.Composition
             return Container.Lookup<T>.Buffer[this.m_Index].Array();
         }
 
+        /// <summary>
+        /// Obtain enumerable of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Enumerable</returns>
+        [DebuggerNonUserCode]
+        [DebuggerStepThrough]
+        [DebuggerHidden]
+        IEnumerable<T> IContainer.Enumerable<T>()
+        {
+            return Container.Lookup<T>.Buffer[this.m_Index].Array();
+        }
+
+        /// <summary>
+        /// Obtain array of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Array</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]
@@ -351,28 +425,63 @@ namespace Puresharp.Composition
             return Container.Lookup<T>.Buffer[this.m_Index].Array();
         }
 
+        /// <summary>
+        /// Obtain array of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Array</returns>
+        [DebuggerNonUserCode]
+        [DebuggerStepThrough]
+        [DebuggerHidden]
+        T[] IContainer.Array<T>()
+        {
+            return Container.Lookup<T>.Buffer[this.m_Index].Array();
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
         }
     }
 
+    /// <summary>
+    /// Multiton container
+    /// </summary>
+    /// <typeparam name="T">Identity</typeparam>
     static public partial class Container<T>
         where T : class
     {
+        /// <summary>
+        /// Add instance as singleton.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="instance">Instance</param>
         static public void Add<T>(T instance)
             where T : class
         {
             Add(() => instance);
         }
 
+        /// <summary>
+        /// Add enumerable of instances as multiton.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="enumerable">Enumerable</param>
         static public void Add<T>(IEnumerable<T> enumerable)
             where T : class
         {
             if (enumerable == null) { return; }
             foreach (var _instance in enumerable) { Add<T>(new Func<T>(() => _instance)); }
         }
-        
-        static public void Add<T>(Func<T> instance)
+
+        /// <summary>
+        /// Add factory to specify how to create instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="factory">Factory</param>
+        static public void Add<T>(Func<T> factory)
             where T : class
         {
             lock (Lookup<T>.Handle)
@@ -388,7 +497,7 @@ namespace Puresharp.Composition
                 var _delegate = null as Func<object, Func<T>, Func<T[]>>;
                 if (Lookup<T>.m_Instance == Lookup<T>.None)
                 {
-                    Lookup<T>.m_Instance = instance;
+                    Lookup<T>.m_Instance = factory;
                     _fields = new FieldBuilder[1];
                     _constructor = _type.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new Type[] { Metadata<Func<T>>.Type }).GetILGenerator();
                     _constructor.Emit(OpCodes.Ldarg_0);
@@ -407,7 +516,7 @@ namespace Puresharp.Composition
                     _array.Emit(OpCodes.Ret);
                     _factory = _type.CreateType();
                     Lookup<T>.Type = new KeyValuePair<Type, FieldBuilder[]>[] { new KeyValuePair<Type, FieldBuilder[]>(_type, _fields) };
-                    Lookup<T>.m_Array = Delegate.CreateDelegate(Metadata<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { instance }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
+                    Lookup<T>.m_Array = Delegate.CreateDelegate(Metadata<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { factory }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
                 }
                 else
                 {
@@ -458,11 +567,16 @@ namespace Puresharp.Composition
                     for (var _index = 0; _index < Lookup<T>.Type.Length; _index++) { _buffer[_index] = Lookup<T>.Type[_index]; }
                     _buffer[Lookup<T>.Type.Length] = new KeyValuePair<Type, FieldBuilder[]>(_type, _fields);
                     Lookup<T>.Type = _buffer;
-                    Lookup<T>.m_Array = Delegate.CreateDelegate(Metadata<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { Lookup<T>.Array.Target, instance }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
+                    Lookup<T>.m_Array = Delegate.CreateDelegate(Metadata<Func<T[]>>.Type, _factory.GetConstructors()[0].Invoke(new object[] { Lookup<T>.Array.Target, factory }), _factory.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)[0]) as Func<T[]>;
                 }
             }
         }
 
+        /// <summary>
+        /// Add type to specifiy which type to create instance as volatile
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="type">Type</param>
         static public void Add<T>(Type type)
             where T : class
         {
@@ -486,6 +600,11 @@ namespace Puresharp.Composition
             else { Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile()); }
         }
 
+        /// <summary>
+        /// Add constructor to specify how to create instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="constructor">Constructor</param>
         static public void Add<T>(ConstructorInfo constructor)
             where T : class
         {
@@ -506,6 +625,11 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance as volatile.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="method">Method</param>
         static public void Add<T>(MethodInfo method)
             where T : class
         {
@@ -532,10 +656,16 @@ namespace Puresharp.Composition
             }
         }
 
-        static public void Add<T>(Func<T> instance, Lifetime lifetime)
+        /// <summary>
+        /// Add factory to specify how to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="factory">Factory</param>
+        /// <param name="lifetime">Lifetime</param>
+        static public void Add<T>(Func<T> factory, Lifetime lifetime)
             where T : class
         {
-            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { Add<T>(instance); }
+            if (object.ReferenceEquals(lifetime, null) || object.ReferenceEquals(lifetime, Lifetime.Volatile)) { Add<T>(factory); }
             else if (object.ReferenceEquals(lifetime, Lifetime.Singleton))
             {
                 var _handle = new object();
@@ -547,11 +677,11 @@ namespace Puresharp.Composition
                     {
                         if (object.Equals(_return, null))
                         {
-                            var _singleton = instance();
+                            var _singleton = factory();
                             _return = new Func<T>(() => _singleton);
                             Interlocked.CompareExchange(ref Lookup<T>.m_Instance, _return, _instance);
                             var _linkup = Lookup<T>.Linkup;
-                            if (_linkup != null) { _linkup.Update(instance, _return); }
+                            if (_linkup != null) { _linkup.Update(factory, _return); }
                             return _singleton;
                         }
                         return _return();
@@ -564,7 +694,13 @@ namespace Puresharp.Composition
             }
             else { throw new NotSupportedException(); }
         }
-        
+
+        /// <summary>
+        /// Add type to specifiy which type to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="type">Type</param>
+        /// <param name="lifetime">Lifetime</param>
         static public void Add<T>(Type type, Lifetime lifetime)
             where T : class
         {
@@ -588,6 +724,12 @@ namespace Puresharp.Composition
             else { Add<T>(Expression.Lambda<Func<T>>(Expression.New(_constructor)).Compile(), lifetime); }
         }
 
+        /// <summary>
+        /// Add constructor to specify how to create instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="constructor">Constructor</param>
+        /// <param name="lifetime">Lifetime</param>
         static public void Add<T>(ConstructorInfo constructor, Lifetime lifetime)
             where T : class
         {
@@ -608,6 +750,12 @@ namespace Puresharp.Composition
             }
         }
 
+        /// <summary>
+        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance and specify lifetime.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="method">Method</param>
+        /// <param name="lifetime">Lifetime</param>
         static public void Add<T>(MethodInfo method, Lifetime lifetime)
             where T : class
         {
@@ -633,7 +781,12 @@ namespace Puresharp.Composition
                 else { Add<T>(Expression.Lambda<Func<T>>(Expression.Block(new ParameterExpression[] { Expression<T>.Parameter }, Expression.Assign(Expression<T>.Parameter, Expression.TypeAs(Expression.New(_constructor), Metadata<T>.Type)), Expression.Call(Expression.TypeAs(Expression<T>.Parameter, method.DeclaringType), method, _arguments), Expression<T>.Parameter)).Compile(), lifetime); }
             }
         }
-        
+
+        /// <summary>
+        /// Obtain a single instance.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Instance</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]
@@ -643,6 +796,11 @@ namespace Puresharp.Composition
             return Lookup<T>.m_Instance();
         }
 
+        /// <summary>
+        /// Obtain enumerable of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Enumerable</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]
@@ -652,6 +810,11 @@ namespace Puresharp.Composition
             return Lookup<T>.m_Array();
         }
 
+        /// <summary>
+        /// Obtain array of all instances registered.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <returns>Array</returns>
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [DebuggerHidden]

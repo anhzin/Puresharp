@@ -11,6 +11,10 @@ namespace Puresharp.Composition
 {
     public sealed partial class Container
     {
+        /// <summary>
+        /// Lokup
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
         [DebuggerNonUserCode]
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -35,6 +39,11 @@ namespace Puresharp.Composition
                 }
             }
 
+            /// <summary>
+            /// Obtain a single instance.
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Instance</returns>
             [DebuggerNonUserCode]
             [DebuggerStepThrough]
             [DebuggerHidden]
@@ -43,6 +52,11 @@ namespace Puresharp.Composition
                 return Container.Lookup<T>.Buffer[index].Instance();
             }
 
+            /// <summary>
+            /// Obtain enumerable of all instances registered.
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Enumerable</returns>
             [DebuggerNonUserCode]
             [DebuggerStepThrough]
             [DebuggerHidden]
@@ -51,6 +65,11 @@ namespace Puresharp.Composition
                 return Container.Lookup<T>.Buffer[index].Array();
             }
 
+            /// <summary>
+            /// Obtain array of all instances registered.
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Array</returns>
             [DebuggerNonUserCode]
             [DebuggerStepThrough]
             [DebuggerHidden]
@@ -89,6 +108,10 @@ namespace Puresharp.Composition
 
     static public partial class Container<T>
     {
+        /// <summary>
+        /// Lookup
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
         [DebuggerNonUserCode]
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -106,6 +129,9 @@ namespace Puresharp.Composition
             static internal object Handle = new object();
             static internal KeyValuePair<Type, FieldBuilder[]>[] Type = new KeyValuePair<Type, FieldBuilder[]>[0];
 
+            /// <summary>
+            /// Instance.
+            /// </summary>
             [Browsable(false)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             static public Func<T> Instance
@@ -116,6 +142,9 @@ namespace Puresharp.Composition
                 get { return Lookup<T>.m_Instance; }
             }
 
+            /// <summary>
+            /// Enumerable.
+            /// </summary>
             [Browsable(false)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             static public Func<IEnumerable<T>> Enumerable
@@ -126,6 +155,9 @@ namespace Puresharp.Composition
                 get { return Lookup<T>.m_Array; }
             }
 
+            /// <summary>
+            /// Array.
+            /// </summary>
             [Browsable(false)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             static public Func<T[]> Array
