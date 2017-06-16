@@ -27,7 +27,7 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add factory to specify how to create instance with a specific lifetime.
+        /// Add factory to specify how to create instance.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="function">Factory</param>
@@ -36,7 +36,7 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add constructor to specify how to create instance with a specific lifetime.
+        /// Add constructor to specify how to create instance.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="constructor">Constructor</param>
@@ -45,7 +45,7 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add a static method to specify how to create instance with a specific lifetime.
+        /// Add a static method to specify how to create instance.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="method">Method</param>
