@@ -16,14 +16,6 @@ namespace Puresharp.SimpleInjectorBattle
     public class Calculator : ICalculator
     {
     }
-
-    public class Primary
-    {
-    }
-
-    public class Secondary
-    {
-    }
     
     static public class Program
     {
@@ -37,27 +29,11 @@ namespace Puresharp.SimpleInjectorBattle
                 _container.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
                 return () => _container.GetInstance<ICalculator>();
             });
-            _benchmark.Add("Puresharp [static]", () =>
-            {
-                Puresharp.Composition.Container<Secondary>.Add<ICalculator>(() => new Calculator());
-                return () => Puresharp.Composition.Container<Secondary>.Instance<ICalculator>();
-            });
-            _benchmark.Add("Puresharp [static] with optimizer", () => 
-            {
-                Puresharp.Composition.Container<Primary>.Add<ICalculator>(() => new Calculator());
-                return () => Puresharp.Composition.Container<Primary>.Lookup<ICalculator>.Instance();
-            });
-            _benchmark.Add("Puresharp [instance]", () =>
+            _benchmark.Add("Puresharp", () =>
             {
                 var _container = new Puresharp.Composition.Container();
-                _container.Add<ICalculator>(() => new Calculator());
+                _container.Add<ICalculator>(() => new Calculator(), Puresharp.Composition.Lifetime.Volatile);
                 return () => _container.Instance<ICalculator>();
-            });
-            _benchmark.Add("Puresharp [instance] with optimizer", () =>
-            {
-                var _container = new Puresharp.Composition.Container();
-                _container.Add<ICalculator>(() => new Calculator());
-                return () => Puresharp.Composition.Container.Lookup<ICalculator>.Instance(_container);
             });
             _benchmark.Add("MEF", () =>
             {

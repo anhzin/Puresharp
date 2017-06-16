@@ -1,6 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 
 namespace Puresharp.Composition
 {
@@ -9,40 +7,23 @@ namespace Puresharp.Composition
     /// </summary>
     public partial class Lifetime
     {
+        static private Lifetime m_Volatile = new Lifetime();
+        static private Lifetime m_Singleton = new Lifetime();
+
         /// <summary>
         /// Volatile
         /// </summary>
-        static public readonly Lifetime Volatile = new Lifetime();
+        static public Lifetime Volatile
+        {
+            get { return Lifetime.m_Volatile; }
+        }
 
         /// <summary>
         /// Singleton
         /// </summary>
-        static public readonly Lifetime Singleton = new Lifetime();
-
-        /// <summary>
-        /// Determines whether the specified object instances are considered equal.
-        /// </summary>
-        /// <param name="left">left</param>
-        /// <param name="right">right</param>
-        /// <returns>Boolean</returns>
-        [DebuggerHidden]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        new static public bool Equals(object left, object right)
+        static public Lifetime Singleton
         {
-            return object.Equals(left, right);
-        }
-
-        /// <summary>
-        /// Determines whether the specified object instances are the same instance.
-        /// </summary>
-        /// <param name="left">left</param>
-        /// <param name="right">right</param>
-        /// <returns>Boolean</returns>
-        [DebuggerHidden]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        new static public bool ReferenceEquals(object left, object right)
-        {
-            return object.ReferenceEquals(left, right);
+            get { return Lifetime.m_Singleton; }
         }
 
         /// <summary>

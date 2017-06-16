@@ -27,57 +27,16 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add factory to specify how to create instance as volatile.
+        /// Add factory to specify how to create instance with a specific lifetime.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
-        /// <param name="factory">Factory</param>
-        void Add<T>(Func<T> factory)
-            where T : class;
-
-        /// <summary>
-        /// Add type to specifiy which type to create instance as volatile
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="type">Type</param>
-        void Add<T>(Type type)
-            where T : class;
-
-        /// <summary>
-        /// Add constructor to specify how to create instance as volatile.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="constructor">Constructor</param>
-        void Add<T>(ConstructorInfo constructor)
-            where T : class;
-
-        /// <summary>
-        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance as volatile.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="method">Method</param>
-        void Add<T>(MethodInfo method)
-            where T : class;
-
-        /// <summary>
-        /// Add factory to specify how to create instance and specify lifetime.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="factory">Factory</param>
+        /// <param name="function">Factory</param>
         /// <param name="lifetime">Lifetime</param>
-        void Add<T>(Func<T> factory, Lifetime lifetime)
+        void Add<T>(Func<T> function, Lifetime lifetime)
             where T : class;
 
         /// <summary>
-        /// Add type to specifiy which type to create instance and specify lifetime.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <param name="type">Type</param>
-        /// <param name="lifetime">Lifetime</param>
-        void Add<T>(Type type, Lifetime lifetime)
-            where T : class;
-
-        /// <summary>
-        /// Add constructor to specify how to create instance and specify lifetime.
+        /// Add constructor to specify how to create instance with a specific lifetime.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="constructor">Constructor</param>
@@ -86,7 +45,7 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
-        /// Add method to specify declaring type will be created using parameterless constructor before using method to initialize instance and specify lifetime.
+        /// Add a static method to specify how to create instance with a specific lifetime.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
         /// <param name="method">Method</param>
@@ -108,14 +67,6 @@ namespace Puresharp.Composition
         /// <typeparam name="T">Interface</typeparam>
         /// <returns>Enumerable</returns>
         IEnumerable<T> Enumerable<T>()
-            where T : class;
-
-        /// <summary>
-        /// Obtain array of all instances registered.
-        /// </summary>
-        /// <typeparam name="T">Interface</typeparam>
-        /// <returns>Array</returns>
-        T[] Array<T>()
             where T : class;
     }
 }
