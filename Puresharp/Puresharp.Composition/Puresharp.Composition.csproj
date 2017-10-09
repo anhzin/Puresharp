@@ -57,6 +57,7 @@
     <Compile Include="Lifetime.IStore.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Expression.cs" />
+    <Compile Include="Multiton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

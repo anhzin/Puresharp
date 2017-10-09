@@ -9,12 +9,14 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Puresharp;
+using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 using MethodBase = System.Reflection.MethodBase;
 using MethodInfo = System.Reflection.MethodInfo;
 using ParameterInfo = System.Reflection.ParameterInfo;
 
-namespace Puresharper
+namespace Puresharp
 {
     static public class Program
     {
@@ -22,9 +24,9 @@ namespace Puresharper
         public const string Module = "<Module>";
         public const string Pointer = "<Pointer>";
 
-        static private readonly MethodInfo GetMethodHandle = Runtime<MethodBase>.Property(_Method => _Method.MethodHandle).GetGetMethod();
-        static private readonly MethodInfo GetFunctionPointer = Runtime<RuntimeMethodHandle>.Method(_Method => _Method.GetFunctionPointer());
-        static private readonly MethodInfo CreateDelegate = Runtime.Method(() => Delegate.CreateDelegate(Runtime<Type>.Value, Runtime<MethodInfo>.Value));
+        static private readonly MethodInfo GetMethodHandle = Metadata<MethodBase>.Property(_Method => _Method.MethodHandle).GetGetMethod();
+        static private readonly MethodInfo GetFunctionPointer = Metadata<RuntimeMethodHandle>.Method(_Method => _Method.GetFunctionPointer());
+        static private readonly MethodInfo CreateDelegate = Puresharp.Reflection.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
 
         static public void Main(string[] arguments)
         {
@@ -200,7 +202,7 @@ namespace Puresharper
                 _initializer.Body.Emit(OpCodes.Stsfld, _method);
             }
             _initializer.Body.Emit(OpCodes.Ldsfld, _method);
-            _initializer.Body.Emit(OpCodes.Callvirt, Runtime<MethodBase>.Method(_Method => _Method.GetParameters()));
+            _initializer.Body.Emit(OpCodes.Callvirt, Metadata<MethodBase>.Method(_Method => _Method.GetParameters()));
             _initializer.Body.Emit(OpCodes.Stsfld, _signature);
             for (var _index = 0; _index < method.Parameters.Count; _index++)
             {
@@ -255,16 +257,16 @@ namespace Puresharper
                 var _boundary = _type.Field<Advice.IBoundary>("<Boundary>", FieldAttributes.Public);
                 _type.IsBeforeFieldInit = true;
                 var _intializer = _type.Initializer();
-                _intializer.Body.Emit(OpCodes.Newobj, Runtime.Constructor(() => new Advice.Boundary.Factory()));
+                _intializer.Body.Emit(OpCodes.Newobj, Puresharp.Reflection.Metadata.Constructor(() => new Advice.Boundary.Factory()));
                 _intializer.Body.Emit(OpCodes.Stsfld, _factory.Relative());
                 _intializer.Body.Emit(OpCodes.Ret);
                 var _constructor = _type.Methods.Single(m => m.IsConstructor && !m.IsStatic);
                 _constructor.Body = new MethodBody(_constructor);
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
-                _constructor.Body.Emit(OpCodes.Call, Runtime.Constructor(() => new object()));
+                _constructor.Body.Emit(OpCodes.Call, Puresharp.Reflection.Metadata.Constructor(() => new object()));
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
                 _constructor.Body.Emit(OpCodes.Ldsfld, _constructor.Module.Import(_factory.Relative()));
-                _constructor.Body.Emit(OpCodes.Callvirt, Runtime<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
+                _constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
                 _constructor.Body.Emit(OpCodes.Stfld, _boundary.Relative());
                 _constructor.Body.Emit(OpCodes.Ret);
                 var _move = _type.Methods.Single(_Method => _Method.Name == "MoveNext");
@@ -282,14 +284,14 @@ namespace Puresharper
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Runtime<MethodBase>.Value, Runtime<ParameterInfo[]>.Value))))));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Argument<MethodBase>.Value, Argument<ParameterInfo[]>.Value))))));
                 if (_instance != null)
                 {
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _instance));
-                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Instance<object>(Runtime<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(method.DeclaringType))));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Instance<object>(Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(method.DeclaringType))));
                 }
                 foreach (var _parameter in method.Parameters)
                 {
@@ -298,15 +300,15 @@ namespace Puresharper
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == _parameter.Name)));
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldflda, _type.Fields.First(_Field => _Field.Name == _parameter.Name).Relative()));
-                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Argument<object>(Runtime<ParameterInfo>.Value, ref Runtime<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Argument<object>(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
                 }
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Begin()))));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Begin()))));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Br_S, _begin));
                 _move.Body.Instructions.Insert(_offset++, _resume);
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
                 while (_offset < _move.Body.Instructions.Count)
                 {
                     var _instruction = _move.Body.Instructions[_offset];
@@ -319,7 +321,7 @@ namespace Puresharper
                             {
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Yield()))));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Yield()))));
                             }
                             else if (_operand.Name == "SetResult")
                             {
@@ -334,12 +336,12 @@ namespace Puresharper
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _return.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Return<object>(ref Runtime<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType)));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return<object>(ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType)));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
                                     _return.Body.Emit(OpCodes.Ldarg_1);
@@ -351,7 +353,7 @@ namespace Puresharper
                                     {
                                         _return.Body.Emit(OpCodes.Ldarg_0);
                                         _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     }
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
@@ -379,12 +381,12 @@ namespace Puresharper
                                     var _end = Instruction.Create(OpCodes.Ret);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Return())));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return())));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
                                     _return.Body.Emit(OpCodes.Call, _operand);
@@ -395,7 +397,7 @@ namespace Puresharper
                                     {
                                         _return.Body.Emit(OpCodes.Ldarg_0);
                                         _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     }
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
@@ -431,12 +433,12 @@ namespace Puresharper
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarg_S, _parameter);
                                     _throw.Body.Emit(OpCodes.Ldloca_S, _value);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw<object>(ref Runtime<Exception>.Value, ref Runtime<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_value.VariableType));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw<object>(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_value.VariableType));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_1);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     _throw.Body.Emit(OpCodes.Ldarg_1);
                                     using (_throw.Body.True())
                                     {
@@ -459,7 +461,7 @@ namespace Puresharper
                                     {
                                         _throw.Body.Emit(OpCodes.Ldarg_0);
                                         _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     }
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldflda, _builder);
@@ -481,12 +483,12 @@ namespace Puresharper
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Runtime<Exception>.Value))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value))));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_0);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     _throw.Body.Emit(OpCodes.Ldarg_1);
                                     using (_throw.Body.True())
                                     {
@@ -508,7 +510,7 @@ namespace Puresharper
                                     {
                                         _throw.Body.Emit(OpCodes.Ldarg_0);
                                         _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Runtime<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
                                     }
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldflda, _builder);

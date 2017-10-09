@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
@@ -78,16 +81,20 @@
     <Compile Include="System\Collections\Generic\__Dictionary.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Puresharp\Puresharp.csproj">
-      <Project>{fecc7042-b532-49ef-b0de-af9b46e77f95}</Project>
-      <Name>Puresharp</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Puresharper.targets">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Puresharp.Confluence\Puresharp.Confluence.csproj">
+      <Project>{ee0e7006-e206-454a-a872-d770300b9df7}</Project>
+      <Name>Puresharp.Confluence</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Puresharp.Reflection\Puresharp.Reflection.csproj">
+      <Project>{237a9612-9bf5-4bcc-8eb4-ea45654defc1}</Project>
+      <Name>Puresharp.Reflection</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

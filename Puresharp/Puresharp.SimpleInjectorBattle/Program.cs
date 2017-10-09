@@ -33,7 +33,7 @@ namespace Puresharp.SimpleInjectorBattle
             {
                 var _container = new Puresharp.Composition.Container();
                 _container.Add<ICalculator>(() => new Calculator(), Puresharp.Composition.Lifetime.Volatile);
-                return () => _container.Instance<ICalculator>();
+                return () => _container.Enumerable<ICalculator>();
             });
             _benchmark.Add("MEF", () =>
             {

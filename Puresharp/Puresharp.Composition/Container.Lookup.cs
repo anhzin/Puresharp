@@ -34,7 +34,7 @@ namespace Puresharp.Composition
 
             static public IEnumerable<T> Enumerable(int index)
             {
-                return Container.Lookup<T>.Buffer[index].Array();
+                return Container.Lookup<T>.Buffer[index].Enumerable();
             }
         }
     }

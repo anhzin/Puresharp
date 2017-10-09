@@ -5,6 +5,7 @@ using Mono.Cecil.Cil;
 using Mono.Collections;
 using Mono.Collections.Generic;
 using Puresharp;
+using Puresharp.Reflection;
 
 using ConstructorInfo = System.Reflection.ConstructorInfo;
 using MethodInfo = System.Reflection.MethodInfo;
@@ -13,8 +14,8 @@ namespace Mono.Cecil
 {
     static internal class __MethodBody
     {
-        static private readonly MethodInfo GetTypeFromHandle = Runtime.Method(() => Type.GetTypeFromHandle(Runtime<RuntimeTypeHandle>.Value));
-        static private readonly MethodInfo GetMethodFromHandle = Runtime.Method(() => MethodInfo.GetMethodFromHandle(Runtime<RuntimeMethodHandle>.Value, Runtime<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetTypeFromHandle = Puresharp.Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetMethodFromHandle = Puresharp.Reflection.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value));
 
         static public int Add(this MethodBody body, Instruction instruction)
         {
@@ -122,14 +123,14 @@ namespace Mono.Cecil
 
         static public VariableDefinition Variable<T>(this MethodBody body)
         {
-            var _variable = new VariableDefinition(string.Concat("<", Runtime<T>.Type, ">"), body.Method.DeclaringType.Module.Import(Runtime<T>.Type));
+            var _variable = new VariableDefinition(string.Concat("<", Metadata<T>.Type, ">"), body.Method.DeclaringType.Module.Import(Metadata<T>.Type));
             body.Variables.Add(_variable);
             return _variable;
         }
 
         static public VariableDefinition Variable<T>(this MethodBody body, string name)
         {
-            var _variable = new VariableDefinition(name, body.Method.DeclaringType.Module.Import(Runtime<T>.Type));
+            var _variable = new VariableDefinition(name, body.Method.DeclaringType.Module.Import(Metadata<T>.Type));
             body.Variables.Add(_variable);
             return _variable;
         }

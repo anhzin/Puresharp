@@ -1,6 +1,5 @@
-﻿using System;
-using System.Reflection;
-using System.Runtime;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -9,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Puresharp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Tony THONG")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Puresharp")]
-[assembly: AssemblyCopyright("Copyright ©  2017 Tony THONG")]
-[assembly: AssemblyTrademark("Puresharp")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -21,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fecc7042-b532-49ef-b0de-af9b46e77f95")]
+[assembly: Guid("d58ee5e6-c9e3-4764-aba8-ff9953161d44")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -33,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0")]
-[assembly: AssemblyFileVersion("1.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

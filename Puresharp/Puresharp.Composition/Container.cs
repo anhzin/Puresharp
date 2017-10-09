@@ -68,14 +68,10 @@ namespace Puresharp.Composition
                         Linkup<Func<T>>.Update(ref _container.Linkup, function);
                         while (true)
                         {
-                            var _array = _container.Array;
+                            var _enumerable = _container.Enumerable;
                             var _linkup = _container.Linkup;
-                            if (_linkup == null) { if (Interlocked.CompareExchange(ref _container.Array, Container.Store<T>.Empty, _array) == _array) { return; } }
-                            else
-                            {
-                                var _activation = (Func<T>[])_linkup;
-                                if (Interlocked.CompareExchange(ref _container.Array, new Func<T[]>(() => { var _buffer = new T[_activation.Length]; for (var _index = 0; _index < _buffer.Length; _index++) { _buffer[_index] = _activation[_index](); } return _buffer; }), _array) == _array) { return; }
-                            }
+                            if (_linkup == null) { if (Interlocked.CompareExchange(ref _container.Enumerable, Container.Store<T>.Empty, _enumerable) == _enumerable) { return; } }
+                            else { if (Interlocked.CompareExchange(ref _container.Enumerable, Multiton<T>.Create(_linkup), _enumerable) == _enumerable) { return; } }
                         }
                     }
                 }
@@ -86,14 +82,10 @@ namespace Puresharp.Composition
                         Linkup<Func<T>>.Update(ref _container.Linkup, function);
                         while (true)
                         {
-                            var _array = _container.Array;
+                            var _enumerable = _container.Enumerable;
                             var _linkup = _container.Linkup;
-                            if (_linkup == null) { if (Interlocked.CompareExchange(ref _container.Array, Container.Store<T>.Empty, _array) == _array) { return; } }
-                            else
-                            {
-                                var _activation = (Func<T>[])_linkup;
-                                if (Interlocked.CompareExchange(ref _container.Array, new Func<T[]>(() => { var _buffer = new T[_activation.Length]; for (var _index = 0; _index < _buffer.Length; _index++) { _buffer[_index] = _activation[_index](); } return _buffer; }), _array) == _array) { return; }
-                            }
+                            if (_linkup == null) { if (Interlocked.CompareExchange(ref _container.Enumerable, Container.Store<T>.Empty, _enumerable) == _enumerable) { return; } }
+                            else { if (Interlocked.CompareExchange(ref _container.Enumerable, Multiton<T>.Create(_linkup), _enumerable) == _enumerable) { return; } }
                         }
                     }
                 }
@@ -135,6 +127,16 @@ namespace Puresharp.Composition
             }
             else if (lifetime is Lifetime.IStore)
             {
+                this.Add<T>(new Func<T>(() => 
+                {
+                    var _instance = (lifetime as Lifetime.IStore).Query<T>();
+                    if (_instance == null)
+                    {
+                        _instance = function();
+                        (lifetime as Lifetime.IStore).Save<T>(_instance);
+                    }
+                    return _instance;
+                }));
                 throw new NotImplementedException();
             }
             else { throw new NotSupportedException(); }
@@ -193,6 +195,17 @@ namespace Puresharp.Composition
         }
 
         /// <summary>
+        /// Add a container to specify where to find instance.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="container">Container</param>
+        public void Add<T>(IContainer container)
+            where T : class
+        {
+            this.Add<T>(new Func<T>(() => container.Instance<T>()));
+        }
+
+        /// <summary>
         /// Obtain a single instance.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>
@@ -211,7 +224,7 @@ namespace Puresharp.Composition
         public IEnumerable<T> Enumerable<T>()
             where T : class
         {
-            return Container.Lookup<T>.Buffer[this.m_Index].Array();
+            return Container.Lookup<T>.Buffer[this.m_Index].Enumerable();
         }
 
         /// <summary>

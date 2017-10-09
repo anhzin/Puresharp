@@ -54,6 +54,14 @@ namespace Puresharp.Composition
             where T : class;
 
         /// <summary>
+        /// Add a container to specify where to find instance.
+        /// </summary>
+        /// <typeparam name="T">Interface</typeparam>
+        /// <param name="container">Container</param>
+        void Add<T>(IContainer container)
+            where T : class;
+
+        /// <summary>
         /// Obtain a single instance.
         /// </summary>
         /// <typeparam name="T">Interface</typeparam>

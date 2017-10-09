@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Puresharp.Composition
 {
@@ -9,10 +11,10 @@ namespace Puresharp.Composition
         {
             static internal Func<T> None = new Func<T>(() => null);
             static internal Func<T> Multiple = new Func<T>(() => { throw new NotSupportedException(); });
-            static internal Func<T[]> Empty = new Func<Func<T[]>>(() => { var _emprty = new T[0]; return new Func<T[]>(() => _emprty); })();
+            static internal Func<IEnumerable<T>> Empty = System.Linq.Enumerable.Empty<T>;
             internal Linkup<Func<T>> Linkup = null;
             internal Func<T> Instance = Container.Store<T>.None;
-            internal Func<T[]> Array = Container.Store<T>.Empty;
+            internal Func<IEnumerable<T>> Enumerable = Container.Store<T>.Empty;
         }
     }
 }

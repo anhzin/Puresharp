@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EE0E7006-E206-454A-A872-D770300B9DF7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Puresharp.Confluence</RootNamespace>
+    <AssemblyName>Puresharp.Confluence</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Puresharp.Confluence.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Addin.cs" />
+    <Compile Include="Addon.cs" />
+    <Compile Include="Advice\Advice.cs" />
+    <Compile Include="Advice\Basic\Advisor.Basic.Before.cs" />
+    <Compile Include="Advice\Basic\Advisor.Basic.Boundary.cs" />
+    <Compile Include="Advice\Basic\Advisor.Basic.cs" />
+    <Compile Include="Advice\Basic\After\Advisor.Basic.After.cs" />
+    <Compile Include="Advice\Basic\After\Advisor.Basic.After.Returning.cs" />
+    <Compile Include="Advice\Basic\After\Advisor.Basic.After.Throwing.cs" />
+    <Compile Include="Advice\Boundary\Advanced\Advice.Boundary.Advanced.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Advice.Boundary.Advanced.After.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Advice.Boundary.Advanced.After.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Advice.Boundary.Advanced.After.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Returning\Advice.Boundary.Advanced.After.Returning.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Returning\Advice.Boundary.Advanced.After.Returning.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Returning\Advice.Boundary.Advanced.After.Returning.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Throwing\Advice.Boundary.Advanced.After.Throwing.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Throwing\Advice.Boundary.Advanced.After.Throwing.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Advanced\After\Throwing\Advice.Boundary.Advanced.After.Throwing.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Advanced\Before\Advice.Boundary.Advanced.Before.cs" />
+    <Compile Include="Advice\Boundary\Advanced\Before\Advice.Boundary.Advanced.Before.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Advanced\Before\Advice.Boundary.Advanced.Before.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Advice.Boundary.cs" />
+    <Compile Include="Advice\Boundary\Advice.Boundary.Legacy.cs" />
+    <Compile Include="Advice\Boundary\Advice.IBoundary.cs" />
+    <Compile Include="Advice\Boundary\Basic\Advice.Boundary.Basic.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Advice.Boundary.Basic.After.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Advice.Boundary.Basic.After.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Advice.Boundary.Basic.After.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Returning\Advice.Boundary.Basic.After.Returning.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Returning\Advice.Boundary.Basic.After.Returning.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Returning\Advice.Boundary.Basic.After.Returning.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Throwing\Advice.Boundary.Basic.After.Throwing.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Throwing\Advice.Boundary.Basic.After.Throwing.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Basic\After\Throwing\Advice.Boundary.Basic.After.Throwing.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.cs" />
+    <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.Singleton.cs" />
+    <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Factory\Advice.Boundary.Factory.cs" />
+    <Compile Include="Advice\Boundary\Factory\Advice.Boundary.IFactory.cs" />
+    <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.cs" />
+    <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.Factory.cs" />
+    <Compile Include="Advice\Linq\Advisor.Linq.Before.cs" />
+    <Compile Include="Advice\Linq\Advisor.Linq.cs" />
+    <Compile Include="Advice\Linq\Advisor.Linq.Patcher.cs" />
+    <Compile Include="Advice\Linq\After\Advisor.Linq.After.cs" />
+    <Compile Include="Advice\Linq\After\Advisor.Linq.After.Returning.cs" />
+    <Compile Include="Advice\Linq\After\Advisor.Linq.After.Throwing.cs" />
+    <Compile Include="Advice\Reflection\Advisor.Reflection.Before.cs" />
+    <Compile Include="Advice\Reflection\Advisor.Reflection.cs" />
+    <Compile Include="Advice\Reflection\After\Advisor.Reflection.After.cs" />
+    <Compile Include="Advice\Reflection\After\Advisor.Reflection.After.Returning.cs" />
+    <Compile Include="Advice\Reflection\After\Advisor.Reflection.After.Throwing.cs" />
+    <Compile Include="Aspect\Aspect.Activity.cs" />
+    <Compile Include="Aspect\Aspect.cs" />
+    <Compile Include="Aspect\Directory\Aspect.Directory.cs" />
+    <Compile Include="Aspect\Directory\Aspect.Directory.Entry.cs" />
+    <Compile Include="Concurrency.cs" />
+    <Compile Include="Data\Data.Collection.cs" />
+    <Compile Include="Data\Data.cs" />
+    <Compile Include="Data\Data.Enumerable.cs" />
+    <Compile Include="Data\Data.Enumerable.Enumerator.cs" />
+    <Compile Include="Data\Data.Map.cs" />
+    <Compile Include="Extension.cs" />
+    <Compile Include="Neptune.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy\Proxy.cs" />
+    <Compile Include="Argument.cs" />
+    <Compile Include="Metadata.cs" />
+    <Compile Include="Runtime\Dictionary\Runtime.Dictionary.cs" />
+    <Compile Include="Runtime\Dictionary\Runtime.Dictionary.Inherited.cs" />
+    <Compile Include="Runtime\Runtime.cs" />
+    <Compile Include="Runtime\Runtime.Inventory.cs" />
+    <Compile Include="Runtime\Runtime.Lookup.cs" />
+    <Compile Include="Startup.cs" />
+    <Compile Include="System\Collections\Generic\Collection.cs" />
+    <Compile Include="System\Collections\Generic\Enumerable.cs" />
+    <Compile Include="System\Collections\Generic\Enumerable.Enumerator.cs" />
+    <Compile Include="System\Collections\Generic\Resource.cs" />
+    <Compile Include="System\Linq\Expressions\Parameter.cs" />
+    <Compile Include="System\Linq\Expressions\__LambdaExpression.cs" />
+    <Compile Include="System\Reflection\Authority.cs" />
+    <Compile Include="System\Reflection\Emit\__BinaryReader.cs" />
+    <Compile Include="System\Reflection\Emit\__ILGenerator.cs" />
+    <Compile Include="System\Reflection\Emit\__Label.cs" />
+    <Compile Include="System\Reflection\Emit\__ModuleBuilder.cs" />
+    <Compile Include="System\Reflection\Gallery.cs" />
+    <Compile Include="System\Reflection\Instruction.cs" />
+    <Compile Include="System\Reflection\Signature.cs" />
+    <Compile Include="System\Reflection\__AssemblyName.cs" />
+    <Compile Include="System\Reflection\__MethodBase.cs" />
+    <Compile Include="System\Reflection\__ParameterInfo.cs" />
+    <Compile Include="System\Reflection\__Type.cs" />
+    <Compile Include="System\Resource.cs" />
+    <Compile Include="System\Runtime\Closure.cs" />
+    <Compile Include="System\Runtime\Closure.Function.cs" />
+    <Compile Include="System\Runtime\Closure.Routine.cs" />
+    <Compile Include="System\Singleton.cs" />
+    <Compile Include="System\__AppDomain.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Puresharp.Confluence.snk" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

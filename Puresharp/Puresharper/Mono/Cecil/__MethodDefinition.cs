@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Puresharp;
+using Puresharp.Reflection;
 
 using FieldInfo = System.Reflection.FieldInfo;
 using MethodBase = System.Reflection.MethodBase;
@@ -25,7 +26,7 @@ namespace Mono.Cecil
         {
             var _constructor = (expression.Body as NewExpression).Constructor;
             var _attribute = new CustomAttribute(method.Module.Import(_constructor));
-            foreach (var _argument in (expression.Body as NewExpression).Arguments) { _attribute.ConstructorArguments.Add(new CustomAttributeArgument(method.Module.Import(_argument.Type), Expression.Lambda<Func<object>>(Expression.Convert(_argument, Runtime<object>.Type)).Compile()())); }
+            foreach (var _argument in (expression.Body as NewExpression).Arguments) { _attribute.ConstructorArguments.Add(new CustomAttributeArgument(method.Module.Import(_argument.Type), Expression.Lambda<Func<object>>(Expression.Convert(_argument, Metadata<object>.Type)).Compile()())); }
             method.CustomAttributes.Add(_attribute);
             return _attribute;
         }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using Puresharp.Confluence;
 
 namespace Puresharp.Sandbox
 {
