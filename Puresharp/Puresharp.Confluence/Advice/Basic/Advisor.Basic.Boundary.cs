@@ -36,7 +36,7 @@ namespace Puresharp.Confluence
                         _body.Emit(OpCodes.Ldloc_0);
                         _body.Emit(OpCodes.Ldsfld, Runtime.Inventory.Parameter(_parameters[_index]));
                         _body.Emit(OpCodes.Ldarga_S, _index);
-                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)));
+                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition().MakeGenericMethod(_parameters[_index].ParameterType));
                     }
                     _body.Emit(OpCodes.Ldloc_0);
                     _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Begin()));
@@ -119,7 +119,7 @@ namespace Puresharp.Confluence
                         _body.Emit(OpCodes.Ldloc_0);
                         _body.Emit(OpCodes.Ldsfld, Runtime.Inventory.Parameter(_parameters[_index]));
                         _body.Emit(OpCodes.Ldarga_S, _index + 1);
-                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)));
+                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition().MakeGenericMethod(_parameters[_index].ParameterType));
                     }
                     _body.Emit(OpCodes.Ldloc_0);
                     _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Begin()));
@@ -174,7 +174,7 @@ namespace Puresharp.Confluence
                         _body.Emit(OpCodes.Ldloc_0);
                         _body.Emit(OpCodes.Ldloca_S, 2);
                         _body.Emit(OpCodes.Ldloca_S, 3);
-                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Throw(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition().MakeGenericMethod());
+                        _body.Emit(OpCodes.Callvirt, Metadata<Advice.IBoundary>.Method(_IBoundary => _IBoundary.Throw(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition().MakeGenericMethod(_type));
                         _body.Emit(OpCodes.Ldloc_2);
                         _body.Emit(OpCodes.Brfalse, _null);
                         _body.Emit(OpCodes.Ldloc_1);

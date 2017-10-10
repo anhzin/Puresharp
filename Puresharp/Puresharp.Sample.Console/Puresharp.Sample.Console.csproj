@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <DoNotCopyLocalIfInGac>true</DoNotCopyLocalIfInGac>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,6 +51,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Puresharp.Confluence\Puresharp.Confluence.csproj">
+      <Project>{ee0e7006-e206-454a-a872-d770300b9df7}</Project>
+      <Name>Puresharp.Confluence</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Puresharp.Sample.Library\Puresharp.Sample.Library.csproj">
       <Project>{6bbada7d-b529-443d-ac60-35ff8ee7601b}</Project>
       <Name>Puresharp.Sample.Library</Name>

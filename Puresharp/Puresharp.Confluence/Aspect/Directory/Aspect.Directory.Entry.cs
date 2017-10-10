@@ -94,7 +94,7 @@ namespace Puresharp.Confluence
                             if (_advice == null) { continue; }
                             _boundary = _advice.Decorate(this.Method, _boundary);
                         }
-                        this.m_Field.SetValue(null, _boundary);
+                        this.m_Boundary.SetValue(null, _boundary);
                     }
                 }
 
