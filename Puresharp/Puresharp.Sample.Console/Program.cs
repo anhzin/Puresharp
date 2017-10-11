@@ -87,9 +87,9 @@ namespace Puresharp.Sample.Console
             Aspect.Weave<Aspect<Boundary1>>(typeof(SuperCalculator).GetMethod("AddEx"));
 
             var calculator = new Calculator();
-            var superCalculator = new SuperCalculator();
+            //var superCalculator = new SuperCalculator();
 
-            var res = superCalculator.AddEx(2, 3);
+            //var res = superCalculator.AddEx(2, 3);
             //System.Console.WriteLine(calculator.Add(2, 5));
             //var g = calculator.Test(new string[] { "blabla" });
             //var y = g.ToArray();

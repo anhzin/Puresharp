@@ -311,16 +311,32 @@ namespace Puresharp
                 while (_offset < _move.Body.Instructions.Count)
                 {
                     var _instruction = _move.Body.Instructions[_offset];
-                    if (_instruction.OpCode == OpCodes.Call)
+                    if (_instruction.OpCode == OpCodes.Callvirt)
                     {
                         if (_instruction.Operand is MethodReference)
                         {
                             var _operand = _instruction.Operand as MethodReference;
-                            if (_operand.Name == "AwaitUnsafeOnCompleted")
+                            if (_operand.Name == "GetAwaiter")
                             {
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Yield()))));
+                            }
+                        }
+                    }
+                    else if (_instruction.OpCode == OpCodes.Call)
+                    {
+                        if (_instruction.Operand is MethodReference)
+                        {
+                            var _operand = _instruction.Operand as MethodReference;
+                            if (_operand.Name == "get_IsCompleted")
+                            {
+                                var _continue = _move.Body.Instructions[++_offset];
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Dup));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Brfalse_S, _continue));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
                             }
                             else if (_operand.Name == "SetResult")
                             {
