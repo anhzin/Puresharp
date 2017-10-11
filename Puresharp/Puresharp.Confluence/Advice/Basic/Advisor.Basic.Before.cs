@@ -17,7 +17,7 @@ namespace Puresharp.Confluence
             //TODO : test if asynchronous! if true, emit Boundary inheritor => if advice.Target == null && method is public => call directly method, other else, stora delegate as field and call it in before method.
             return new Advice((_Method, _Pointer, _Boundary) =>
             {
-                if (_Boundary != null) { return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Basic.Before.Singleton(advice)); }
+                if (_Boundary != null) { return _Boundary.Combine(new Advice.Boundary.Basic.Before.Singleton(advice)); }
                 var _signature = _Method.Signature();
                 var _type = _Method.ReturnType();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);
@@ -42,7 +42,7 @@ namespace Puresharp.Confluence
         {
             return new Advice((_Method, _Pointer, _Boundary) =>
             {
-                if (_Boundary != null) { return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Advanced.Before.Singleton(advice)); }
+                if (_Boundary != null) { return _Boundary.Combine(new Advice.Boundary.Advanced.Before.Singleton(advice)); }
                 var _signature = _Method.Signature();
                 var _type = _Method.ReturnType();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);

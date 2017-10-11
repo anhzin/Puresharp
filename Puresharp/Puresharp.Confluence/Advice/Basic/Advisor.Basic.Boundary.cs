@@ -13,7 +13,7 @@ namespace Puresharp.Confluence
             //TODO missing dispose call!
             return new Advice((_Method, _Pointer, _Boundary) =>
             {
-                if (_Boundary != null) { return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Factory<T>()); }
+                if (_Boundary != null) { return _Boundary.Combine(new Advice.Boundary.Factory<T>()); }
                 var _type = _Method.ReturnType();
                 var _parameters = _Method.GetParameters();
                 var _signature = _Method.Signature();

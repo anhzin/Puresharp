@@ -96,7 +96,7 @@ namespace Puresharp.Confluence
             return new Advice((_Method, _Pointer, _Boundary) =>
             {
                 if (advice == null) { return null; }
-                if (_Boundary != null) { return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Basic.After.Singleton(Expression.Lambda<Action>(advice).Compile())); }
+                if (_Boundary != null) { return _Boundary.Combine(new Advice.Boundary.Basic.After.Singleton(Expression.Lambda<Action>(advice).Compile())); }
                 var _signature = _Method.Signature();
                 if (advice.Type != Runtime.Void) { throw new NotSupportedException(); }
                 var _type = _Method.ReturnType();
@@ -149,7 +149,7 @@ namespace Puresharp.Confluence
                     var _advice = advice(_signature.Instance == null ? null : _signature.Instance.IsValueType ? Expression.Convert(_instance, _signature.Instance) : Expression.TypeAs(_instance, _signature.Instance), new Collection<Expression>(_signature.Parameters.Select((_Parameter, _Index) => _Parameter.IsValueType ? Expression.Convert(Expression.ArrayIndex(_arguments, Expression.Constant(_Index, Metadata<int>.Type)), _Parameter) : Expression.TypeAs(Expression.ArrayIndex(_arguments, Expression.Constant(_Index, Metadata<int>.Type)), _Parameter)).ToArray()));
                     if (_advice == null) { return null; }
                     if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
-                    return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Advanced.After.Singleton(Expression.Lambda<Action<object, object[]>>(_advice, _instance, _arguments).Compile()));
+                    return _Boundary.Combine(new Advice.Boundary.Advanced.After.Singleton(Expression.Lambda<Action<object, object[]>>(_advice, _instance, _arguments).Compile()));
                 }
                 else
                 {

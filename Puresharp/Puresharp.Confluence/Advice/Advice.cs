@@ -124,5 +124,16 @@ namespace Puresharp.Confluence
     /// </summary>
     static public partial class __Advice
     {
+        /// <summary>
+        /// Combine two bounday factory to include behavior of both.
+        /// </summary>
+        /// <param name="authority">Authority boundary factory</param>
+        /// <param name="factory">Secondary bounday factory to fusion with authority boundary factory</param>
+        /// <returns>Combined boundary factory with behavior of both</returns>
+        static public Advice.Boundary.IFactory Combine(this Advice.Boundary.IFactory authority, Advice.Boundary.IFactory factory)
+        {
+            if (authority.GetType() == Metadata<Advice.Boundary.Factory>.Type) { return factory; }
+            return new Advice.Boundary.Sequence.Factory(authority, factory);
+        }
     }
 }

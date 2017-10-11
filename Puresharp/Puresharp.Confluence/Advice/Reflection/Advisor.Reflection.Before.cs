@@ -45,7 +45,7 @@ namespace Puresharp.Confluence
                     _redirection.Emit(OpCodes.Call, _method);
                     _redirection.Emit(OpCodes.Ret);
                     _action.Prepare();
-                    return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Advanced.Before.Singleton(_action.CreateDelegate(Metadata<Action<object, object[]>>.Type, null) as Action<object, object[]>));
+                    return _Boundary.Combine(new Advice.Boundary.Advanced.Before.Singleton(_action.CreateDelegate(Metadata<Action<object, object[]>>.Type, null) as Action<object, object[]>));
                 }
                 else
                 {

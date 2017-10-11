@@ -16,7 +16,7 @@ namespace Puresharp.Confluence
         {
             return new Advice((_Method, _Pointer, _Boundary) =>
             {
-                if (_Boundary != null) { return new Advice.Boundary.Sequence.Factory(_Boundary, new Advice.Boundary.Basic.After.Throwing.Singleton(advice)); }
+                if (_Boundary != null) { return _Boundary.Combine(new Advice.Boundary.Basic.After.Throwing.Singleton(advice)); }
                 var _type = _Method.ReturnType();
                 var _signature = _Method.Signature();
                 var _method = new DynamicMethod(string.Empty, _type, _signature, _Method.Module, true);

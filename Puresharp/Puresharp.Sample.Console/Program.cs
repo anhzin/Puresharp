@@ -72,7 +72,7 @@ namespace Puresharp.Sample.Console
             //Aspect.Weave<Aspect1>(typeof(Calculator).GetMethod("Test"));
             //Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("Add"));
             Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("TestAsync"));
-            Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetConstructors().Single());
+            //Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetConstructors().Single());
             var calculator = new Calculator();
             //System.Console.WriteLine(calculator.Add(2, 5));
             //var g = calculator.Test(new string[] { "blabla" });
