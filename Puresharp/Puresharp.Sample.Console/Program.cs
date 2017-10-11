@@ -1,11 +1,10 @@
-﻿using Puresharp.Confluence;
-using Puresharp.Sample.Library;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
+using Puresharp.Confluence;
+using Puresharp.Sample;
+using Puresharp.Sample.Library;
 
 namespace Puresharp.Sample.Console
 {
@@ -14,6 +13,15 @@ namespace Puresharp.Sample.Console
         public override IEnumerable<Advice> Advise(MethodBase method)
         {
             yield return Advice.Basic.Before(() => System.Console.WriteLine("Hello World"));
+        }
+    }
+
+    public class Aspect2 : Aspect
+    {
+        public override IEnumerable<Advice> Advise(MethodBase method)
+        {
+            yield return Advice.Basic.Before(() => System.Console.WriteLine($"Before => { method.Name }"));
+            yield return Advice.Basic.After(() => System.Console.WriteLine($"After => { method.Name }"));
         }
     }
 
@@ -73,7 +81,15 @@ namespace Puresharp.Sample.Console
             //Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("Add"));
             Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("TestAsync"));
             //Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetConstructors().Single());
+
+            Aspect.Weave<Aspect2>(typeof(Calculator).GetMethod("AddEx"));
+            Aspect.Weave<Aspect2>(typeof(SuperCalculator).GetMethod("AddEx"));
+            Aspect.Weave<Aspect<Boundary1>>(typeof(SuperCalculator).GetMethod("AddEx"));
+
             var calculator = new Calculator();
+            var superCalculator = new SuperCalculator();
+
+            var res = superCalculator.AddEx(2, 3);
             //System.Console.WriteLine(calculator.Add(2, 5));
             //var g = calculator.Test(new string[] { "blabla" });
             //var y = g.ToArray();
