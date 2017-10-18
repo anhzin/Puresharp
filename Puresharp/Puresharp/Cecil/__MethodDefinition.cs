@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Puresharp;
-using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 using FieldInfo = System.Reflection.FieldInfo;
 using MethodBase = System.Reflection.MethodBase;
@@ -39,6 +39,48 @@ namespace Mono.Cecil
         static public void Parameter<T>(this MethodDefinition method, string name)
         {
             method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, method.Module.Import(typeof(T))));
+        }
+
+        static public void Parameter(this MethodDefinition method, string name, TypeReference type)
+        {
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, type));
+        }
+
+        static public void Parameter(this MethodDefinition method, string name, ParameterAttributes attributes, TypeReference type)
+        {
+            method.Parameters.Add(new ParameterDefinition(name, attributes, type));
+        }
+
+        static public MethodDefinition DefineParameter<T>(this MethodDefinition method, string name)
+        {
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, method.Module.Import(typeof(T))));
+            return method;
+        }
+
+        static public MethodDefinition DefineParameter(this MethodDefinition method, string name, TypeReference type)
+        {
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, type));
+            return method;
+        }
+
+        static public MethodDefinition DefineReferenceParameter<T>(this MethodDefinition method, string name)
+        {
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, new ByReferenceType(method.Module.Import(typeof(T)))));
+            return method;
+        }
+
+        static public MethodDefinition DefineGenericParameter(this MethodDefinition method, string name, string type)
+        {
+            var _type = new GenericParameter(type, method);
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.In | ParameterAttributes.Out, _type));
+            return method;
+        }
+
+        static public MethodDefinition DefineGenericReferenceParameter(this MethodDefinition method, string name, string type)
+        {
+            var _type = new GenericParameter(type, method);
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.In | ParameterAttributes.Out, new ByReferenceType(_type)));
+            return method;
         }
 
         static public ParameterDefinition Add(this MethodDefinition method, ParameterDefinition parameter)

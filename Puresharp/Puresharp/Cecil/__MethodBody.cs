@@ -5,7 +5,7 @@ using Mono.Cecil.Cil;
 using Mono.Collections;
 using Mono.Collections.Generic;
 using Puresharp;
-using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 using ConstructorInfo = System.Reflection.ConstructorInfo;
 using MethodInfo = System.Reflection.MethodInfo;
@@ -14,8 +14,8 @@ namespace Mono.Cecil
 {
     static internal class __MethodBody
     {
-        static private readonly MethodInfo GetTypeFromHandle = Puresharp.Confluence.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value));
-        static private readonly MethodInfo GetMethodFromHandle = Puresharp.Confluence.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetTypeFromHandle = Puresharp.Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetMethodFromHandle = Puresharp.Reflection.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value));
 
         static public int Add(this MethodBody body, Mono.Cecil.Cil.Instruction instruction)
         {

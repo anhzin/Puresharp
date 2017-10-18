@@ -9,7 +9,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Puresharp;
-using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 using MethodBase = System.Reflection.MethodBase;
 using MethodInfo = System.Reflection.MethodInfo;
@@ -25,7 +25,8 @@ namespace Puresharp
 
         static private readonly MethodInfo GetMethodHandle = Metadata<MethodBase>.Property(_Method => _Method.MethodHandle).GetGetMethod();
         static private readonly MethodInfo GetFunctionPointer = Metadata<RuntimeMethodHandle>.Method(_Method => _Method.GetFunctionPointer());
-        static private readonly MethodInfo CreateDelegate = Puresharp.Confluence.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
+        static private readonly MethodInfo CreateDelegate = Puresharp.Reflection.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
+        static private readonly ConditionalWeakTable<AssemblyDefinition, Lifecycle> m_Lifecycles = new ConditionalWeakTable<AssemblyDefinition, Lifecycle>();
 
         static public void Main(string[] arguments)
         {
@@ -92,6 +93,35 @@ namespace Puresharp
             }
         }
 
+        static private Lifecycle Lifecycle(this AssemblyDefinition assembly)
+        {
+            return Program.m_Lifecycles.GetValue(assembly, _Assembly =>
+            {
+                var _module = assembly.MainModule.GetTypes().Single(_Type => _Type.Name == Program.Module);
+                var _type = _module.Type("ILifecycle", TypeAttributes.Interface);
+                return new Lifecycle
+                (
+                    _type,
+                    _type.Method("Method", MethodAttributes.Public | MethodAttributes.Virtual).DefineParameter<MethodBase>("method").DefineParameter<ParameterInfo[]>("signature"),
+                    _type.Method("Instance", MethodAttributes.Public | MethodAttributes.Virtual).DefineGenericParameter("instance", "T"),
+                    _type.Method("Argument", MethodAttributes.Public | MethodAttributes.Virtual).DefineParameter<ParameterInfo>("parameter").DefineGenericReferenceParameter("value", "T"),
+                    _type.Method("Begin", MethodAttributes.Public | MethodAttributes.Virtual),
+                    _type.Method("Await", MethodAttributes.Public | MethodAttributes.Virtual),
+                    _type.Method("Continue", MethodAttributes.Public | MethodAttributes.Virtual),
+                    new Lifecycle.Feedback
+                    (
+                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual),
+                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual).DefineReferenceParameter<Exception>("exception")
+                    ),
+                    new Lifecycle.Feedback
+                    (
+                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual).DefineGenericReferenceParameter("value", "T"),
+                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual).DefineReferenceParameter<Exception>("exception").DefineGenericReferenceParameter("value", "T")
+                    )
+                );
+            });
+        }
+
         static private TypeDefinition Authority(this TypeDefinition type)
         {
             foreach (var _type in type.NestedTypes) { if (_type.Name == Program.Neptune) { return _type; } }
@@ -155,7 +185,7 @@ namespace Puresharp
             var _initializer = _intermediate.Initializer();
             var _variable = _initializer.Body.Variable<RuntimeMethodHandle>();
             _initializer.Body.Variable<Func<IntPtr>>();
-            if (_intermediate.GenericParameters.Count == 0)
+            if (_intermediate.GenericParameters.Count == 0) //TODO Virtuoze : Replace direct init by authentic by checking appdomain.CurrentDocumain.GetData('Resolver'). => if(resolver == null) => authentic else call resolver to get pointer!
             {
                 _initializer.Body.Emit(authentic);
                 _initializer.Body.Emit(OpCodes.Callvirt, Program.GetMethodHandle);
@@ -252,20 +282,38 @@ namespace Puresharp
             if (_machine != null)
             {
                 var _type = _machine.ConstructorArguments[0].Value as TypeDefinition;
-                var _factory = _type.Field<Advice.Boundary.IFactory>("<Factory>", FieldAttributes.Public | FieldAttributes.Static);
-                var _boundary = _type.Field<Advice.IBoundary>("<Boundary>", FieldAttributes.Public);
+
+                //get from appdomain => factory of factory to define initial factory!
+                //Generate custom delegate to ref delegate :-(
+                //TODO Virtuoze => replace boundary/factory by delegate/delegate factory for each method.
+                var _lifecycle = method.DeclaringType.Module.Assembly.Lifecycle();
+                var _factory = _type.Field("<Factory>", FieldAttributes.Public | FieldAttributes.Static, _type.Module.Import(typeof(Func<>)).MakeGenericInstanceType(_lifecycle.Type));
+                var _boundary = _type.Field("<Boundary>", FieldAttributes.Public, _lifecycle.Type);
+                
+
+
+
+
+
                 _type.IsBeforeFieldInit = true;
                 var _intializer = _type.Initializer();
-                _intializer.Body.Emit(OpCodes.Newobj, Puresharp.Confluence.Metadata.Constructor(() => new Advice.Boundary.Factory()));
+
+                //_intializer.Body.Emit(OpCodes.Newobj, Puresharp.Reflection.Metadata.Constructor(() => new Advice.Boundary.Factory())); //TODO Virtuoze => get data from appdomain to detect default boundary for method! if null => instantiate ABF
+                _intializer.Body.Emit(OpCodes.Ldnull);
+
                 _intializer.Body.Emit(OpCodes.Stsfld, _factory.Relative());
                 _intializer.Body.Emit(OpCodes.Ret);
                 var _constructor = _type.Methods.Single(m => m.IsConstructor && !m.IsStatic);
                 _constructor.Body = new MethodBody(_constructor);
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
-                _constructor.Body.Emit(OpCodes.Call, Puresharp.Confluence.Metadata.Constructor(() => new object()));
+                _constructor.Body.Emit(OpCodes.Call, Puresharp.Reflection.Metadata.Constructor(() => new object()));
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
                 _constructor.Body.Emit(OpCodes.Ldsfld, _constructor.Module.Import(_factory.Relative()));
-                _constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
+
+
+                //_constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
+                _constructor.Body.Emit(OpCodes.Call, new MethodReference("Invoke", _factory.FieldType));
+
                 _constructor.Body.Emit(OpCodes.Stfld, _boundary.Relative());
                 _constructor.Body.Emit(OpCodes.Ret);
                 var _move = _type.Methods.Single(_Method => _Method.Name == "MoveNext");
@@ -283,14 +331,14 @@ namespace Puresharp
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata));
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Argument<MethodBase>.Value, Argument<ParameterInfo[]>.Value))))));
+                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Method))));
                 if (_instance != null)
                 {
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _instance));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Instance<object>(Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(method.DeclaringType))));
+                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Instance).MakeGenericMethod(method.DeclaringType))));
                 }
                 foreach (var _parameter in method.Parameters)
                 {
@@ -299,15 +347,15 @@ namespace Puresharp
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == _parameter.Name)));
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                     _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldflda, _type.Fields.First(_Field => _Field.Name == _parameter.Name).Relative()));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Argument<object>(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
+                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Argument).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
                 }
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Begin()))));
+                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Begin)));
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Br_S, _begin));
                 _move.Body.Instructions.Insert(_offset++, _resume);
                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
+                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Continue)));
                 while (_offset < _move.Body.Instructions.Count)
                 {
                     var _instruction = _move.Body.Instructions[_offset];
@@ -320,7 +368,7 @@ namespace Puresharp
                             {
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Yield()))));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Await)));
                             }
                         }
                     }
@@ -336,7 +384,7 @@ namespace Puresharp
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Brfalse_S, _continue));
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
                                 _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
+                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Continue)));
                             }
                             else if (_operand.Name == "SetResult")
                             {
@@ -351,12 +399,12 @@ namespace Puresharp
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _return.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return<object>(ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType)));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Value.Return).MakeGenericMethod(_parameter.ParameterType)));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
                                     _return.Body.Emit(OpCodes.Ldarg_1);
@@ -368,7 +416,7 @@ namespace Puresharp
                                     {
                                         _return.Body.Emit(OpCodes.Ldarg_0);
                                         _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     }
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
@@ -396,12 +444,12 @@ namespace Puresharp
                                     var _end = Mono.Cecil.Cil.Instruction.Create(OpCodes.Ret);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return())));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Void.Return));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
                                     _return.Body.Emit(OpCodes.Call, _operand);
@@ -412,7 +460,7 @@ namespace Puresharp
                                     {
                                         _return.Body.Emit(OpCodes.Ldarg_0);
                                         _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     }
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldflda, _builder);
@@ -448,12 +496,12 @@ namespace Puresharp
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarg_S, _parameter);
                                     _throw.Body.Emit(OpCodes.Ldloca_S, _value);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw<object>(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_value.VariableType));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Value.Throw).MakeGenericMethod(_value.VariableType));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_1);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     _throw.Body.Emit(OpCodes.Ldarg_1);
                                     using (_throw.Body.True())
                                     {
@@ -476,7 +524,7 @@ namespace Puresharp
                                     {
                                         _throw.Body.Emit(OpCodes.Ldarg_0);
                                         _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     }
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldflda, _builder);
@@ -498,12 +546,12 @@ namespace Puresharp
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Void.Throw));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_0);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     _throw.Body.Emit(OpCodes.Ldarg_1);
                                     using (_throw.Body.True())
                                     {
@@ -525,7 +573,7 @@ namespace Puresharp
                                     {
                                         _throw.Body.Emit(OpCodes.Ldarg_0);
                                         _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Dispose()))));
+                                        _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<IDisposable>.Method(_IDisposable => _IDisposable.Dispose()))));
                                     }
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldflda, _builder);

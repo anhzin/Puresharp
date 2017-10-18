@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Puresharp;
-using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 using PropertyInfo = System.Reflection.PropertyInfo;
 

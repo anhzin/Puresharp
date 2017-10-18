@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Mono;
 using Puresharp;
-using Puresharp.Confluence;
+using Puresharp.Reflection;
 
 namespace Mono.Cecil
 {

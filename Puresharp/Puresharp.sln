@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Puresharp.Sample.Console", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Puresharp.Sample.Library", "Puresharp.Sample.Library\Puresharp.Sample.Library.csproj", "{6BBADA7D-B529-443D-AC60-35FF8EE7601B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication2", "ConsoleApplication2\ConsoleApplication2.csproj", "{E61CE4BC-D551-4CBD-BE60-F9969F277899}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{6BBADA7D-B529-443D-AC60-35FF8EE7601B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BBADA7D-B529-443D-AC60-35FF8EE7601B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BBADA7D-B529-443D-AC60-35FF8EE7601B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E61CE4BC-D551-4CBD-BE60-F9969F277899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E61CE4BC-D551-4CBD-BE60-F9969F277899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E61CE4BC-D551-4CBD-BE60-F9969F277899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E61CE4BC-D551-4CBD-BE60-F9969F277899}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
