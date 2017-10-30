@@ -46,10 +46,10 @@ namespace Puresharp.Confluence
                     for (var _index = 0; _index < _sequence.Length; _index++) { _sequence[_index].Continue(); }
                 }
 
-                public void Yield()
+                public void Await()
                 {
                     var _sequence = this.m_Sequence;
-                    for (var _index = _sequence.Length - 1; _index >= 0; _index--) { _sequence[_index].Yield(); }
+                    for (var _index = _sequence.Length - 1; _index >= 0; _index--) { _sequence[_index].Await(); }
                 }
 
                 public void Return()

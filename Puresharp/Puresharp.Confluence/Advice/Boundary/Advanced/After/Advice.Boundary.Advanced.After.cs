@@ -44,7 +44,7 @@ namespace Puresharp.Confluence
                     {
                     }
 
-                    void Advice.IBoundary.Yield()
+                    void Advice.IBoundary.Await()
                     {
                     }
 

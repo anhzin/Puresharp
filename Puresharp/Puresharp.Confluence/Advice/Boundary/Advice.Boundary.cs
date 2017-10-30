@@ -27,7 +27,7 @@ namespace Puresharp.Confluence
             {
             }
 
-            virtual public void Yield()
+            virtual public void Await()
             {
             }
 

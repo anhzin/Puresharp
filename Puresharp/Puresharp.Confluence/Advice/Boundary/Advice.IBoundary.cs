@@ -12,7 +12,7 @@ namespace Puresharp.Confluence
             void Argument<T>(ParameterInfo parameter, ref T value);
             void Begin();
             void Continue();
-            void Yield();
+            void Await();
             void Return();
             void Throw(ref Exception exception);
             void Return<T>(ref T value);

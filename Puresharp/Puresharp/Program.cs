@@ -93,33 +93,53 @@ namespace Puresharp
             }
         }
 
-        static private Lifecycle Lifecycle(this AssemblyDefinition assembly)
+        static private Lifecycle Lifecycle(this AssemblyDefinition assembly, ModuleDefinition module)
         {
-            return Program.m_Lifecycles.GetValue(assembly, _Assembly =>
+            var _lifecycle = Program.m_Lifecycles.GetValue(assembly, _Assembly =>
             {
                 var _module = assembly.MainModule.GetTypes().Single(_Type => _Type.Name == Program.Module);
-                var _type = _module.Type("ILifecycle", TypeAttributes.Interface);
+                var _type = _module.Type("ILifecycle", TypeAttributes.Interface | TypeAttributes.Public);
                 return new Lifecycle
                 (
                     _type,
-                    _type.Method("Method", MethodAttributes.Public | MethodAttributes.Virtual).DefineParameter<MethodBase>("method").DefineParameter<ParameterInfo[]>("signature"),
-                    _type.Method("Instance", MethodAttributes.Public | MethodAttributes.Virtual).DefineGenericParameter("instance", "T"),
-                    _type.Method("Argument", MethodAttributes.Public | MethodAttributes.Virtual).DefineParameter<ParameterInfo>("parameter").DefineGenericReferenceParameter("value", "T"),
-                    _type.Method("Begin", MethodAttributes.Public | MethodAttributes.Virtual),
-                    _type.Method("Await", MethodAttributes.Public | MethodAttributes.Virtual),
-                    _type.Method("Continue", MethodAttributes.Public | MethodAttributes.Virtual),
+                    _type.Method("Method", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineParameter<MethodBase>("method").DefineParameter<ParameterInfo[]>("signature"),
+                    _type.Method("Instance", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineGenericParameter("instance", "T"),
+                    _type.Method("Argument", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineParameter<ParameterInfo>("parameter").DefineGenericReferenceParameter("value", "T"),
+                    _type.Method("Begin", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
+                    _type.Method("Await", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
+                    _type.Method("Continue", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
                     new Lifecycle.Feedback
                     (
-                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual),
-                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual).DefineReferenceParameter<Exception>("exception")
+                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
+                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineReferenceParameter<Exception>("exception")
                     ),
                     new Lifecycle.Feedback
                     (
-                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual).DefineGenericReferenceParameter("value", "T"),
-                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual).DefineReferenceParameter<Exception>("exception").DefineGenericReferenceParameter("value", "T")
+                        _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineGenericReferenceParameter("value", "T"),
+                        _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineReferenceParameter<Exception>("exception").DefineGenericReferenceParameter("value", "T")
                     )
                 );
             });
+            return new Lifecycle
+            (
+                module.Import(_lifecycle.Type),
+                module.Import(_lifecycle.Method),
+                module.Import(_lifecycle.Instance),
+                module.Import(_lifecycle.Argument),
+                module.Import(_lifecycle.Begin),
+                module.Import(_lifecycle.Await),
+                module.Import(_lifecycle.Continue),
+                new Lifecycle.Feedback
+                (
+                    module.Import(_lifecycle.Void.Return),
+                    module.Import(_lifecycle.Void.Throw)
+                ),
+                new Lifecycle.Feedback
+                (
+                    module.Import(_lifecycle.Value.Return),
+                    module.Import(_lifecycle.Value.Throw)
+                )
+            );
         }
 
         static private TypeDefinition Authority(this TypeDefinition type)
@@ -286,10 +306,10 @@ namespace Puresharp
                 //get from appdomain => factory of factory to define initial factory!
                 //Generate custom delegate to ref delegate :-(
                 //TODO Virtuoze => replace boundary/factory by delegate/delegate factory for each method.
-                var _lifecycle = method.DeclaringType.Module.Assembly.Lifecycle();
+                var _lifecycle = method.DeclaringType.Module.Assembly.Lifecycle(_type.Module);
                 var _factory = _type.Field("<Factory>", FieldAttributes.Public | FieldAttributes.Static, _type.Module.Import(typeof(Func<>)).MakeGenericInstanceType(_lifecycle.Type));
                 var _boundary = _type.Field("<Boundary>", FieldAttributes.Public, _lifecycle.Type);
-                
+
 
 
 
@@ -309,10 +329,10 @@ namespace Puresharp
                 _constructor.Body.Emit(OpCodes.Call, Puresharp.Reflection.Metadata.Constructor(() => new object()));
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
                 _constructor.Body.Emit(OpCodes.Ldsfld, _constructor.Module.Import(_factory.Relative()));
+                //_constructor.Body.Emit(OpCodes.Pop);
 
-
-                //_constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
-                _constructor.Body.Emit(OpCodes.Call, new MethodReference("Invoke", _factory.FieldType));
+                ////_constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
+                _constructor.Body.Emit(OpCodes.Call, new MethodReference("Invoke", _lifecycle.Type, _factory.FieldType));
 
                 _constructor.Body.Emit(OpCodes.Stfld, _boundary.Relative());
                 _constructor.Body.Emit(OpCodes.Ret);

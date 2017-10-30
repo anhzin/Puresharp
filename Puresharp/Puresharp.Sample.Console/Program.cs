@@ -67,7 +67,7 @@ namespace Puresharp.Sample.Console
         {
         }
 
-        public void Yield()
+        public void Await()
         {
         }
     }

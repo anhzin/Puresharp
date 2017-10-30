@@ -87,6 +87,7 @@
     <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.cs" />
     <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.Singleton.cs" />
     <Compile Include="Advice\Boundary\Basic\Before\Advice.Boundary.Basic.Before.Volatile.cs" />
+    <Compile Include="Advice\Boundary\Factory\Advice.Boundary.Factory.Proxy.cs" />
     <Compile Include="Advice\Boundary\Factory\Advice.Boundary.Factory.cs" />
     <Compile Include="Advice\Boundary\Factory\Advice.Boundary.IFactory.cs" />
     <Compile Include="Advice\Boundary\Sequence\Advice.Boundary.Sequence.cs" />

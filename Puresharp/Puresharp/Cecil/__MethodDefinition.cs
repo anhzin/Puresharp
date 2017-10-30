@@ -65,20 +65,22 @@ namespace Mono.Cecil
 
         static public MethodDefinition DefineReferenceParameter<T>(this MethodDefinition method, string name)
         {
-            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, new ByReferenceType(method.Module.Import(typeof(T)))));
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.In | ParameterAttributes.Out, new ByReferenceType(method.Module.Import(typeof(T)))));
             return method;
         }
 
         static public MethodDefinition DefineGenericParameter(this MethodDefinition method, string name, string type)
         {
             var _type = new GenericParameter(type, method);
-            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.In | ParameterAttributes.Out, _type));
+            method.GenericParameters.Add(_type);
+            method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.None, _type));
             return method;
         }
 
         static public MethodDefinition DefineGenericReferenceParameter(this MethodDefinition method, string name, string type)
         {
             var _type = new GenericParameter(type, method);
+            method.GenericParameters.Add(_type);
             method.Parameters.Add(new ParameterDefinition(name, ParameterAttributes.In | ParameterAttributes.Out, new ByReferenceType(_type)));
             return method;
         }

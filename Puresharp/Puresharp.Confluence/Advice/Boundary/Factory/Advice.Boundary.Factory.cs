@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Puresharp.Confluence
 {
@@ -6,8 +8,9 @@ namespace Puresharp.Confluence
     {
         public partial class Boundary
         {
-            public class Factory : Advice.Boundary.IFactory
+            public partial class Factory : Advice.Boundary.IFactory
             {
+                static private ModuleBuilder m_Module = AppDomain.CurrentDomain.DefineDynamicModule();
                 static private Advice.Boundary m_Boundary = new Advice.Boundary();
 
                 public IBoundary Create()

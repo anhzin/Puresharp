@@ -6,17 +6,17 @@ namespace Puresharp
 {
     internal class Lifecycle
     {
-        private TypeDefinition m_Type;
-        private MethodDefinition m_Method;
-        private MethodDefinition m_Instance;
-        private MethodDefinition m_Argument;
-        private MethodDefinition m_Begin;
-        private MethodDefinition m_Continue;
-        private MethodDefinition m_Await;
+        private TypeReference m_Type;
+        private MethodReference m_Method;
+        private MethodReference m_Instance;
+        private MethodReference m_Argument;
+        private MethodReference m_Begin;
+        private MethodReference m_Continue;
+        private MethodReference m_Await;
         private Feedback m_Void;
         private Feedback m_Value;
 
-        public Lifecycle(TypeDefinition type, MethodDefinition method, MethodDefinition instance, MethodDefinition argument, MethodDefinition begin, MethodDefinition @continue, MethodDefinition await, Feedback @void, Feedback value)
+        public Lifecycle(TypeReference type, MethodReference method, MethodReference instance, MethodReference argument, MethodReference begin, MethodReference @continue, MethodReference await, Feedback @void, Feedback value)
         {
             this.m_Type = type;
             this.m_Method = method;
@@ -29,29 +29,29 @@ namespace Puresharp
             this.m_Value = value;
         }
 
-        public TypeDefinition Type { get { return this.m_Type; } }
-        public MethodDefinition Method { get { return this.m_Method; } }
-        public MethodDefinition Instance { get { return this.m_Instance; } }
-        public MethodDefinition Argument { get { return this.m_Argument; } }
-        public MethodDefinition Begin { get { return this.m_Begin; } }
-        public MethodDefinition Continue { get { return this.m_Continue; } }
-        public MethodDefinition Await { get { return this.m_Await; } }
+        public TypeReference Type { get { return this.m_Type; } }
+        public MethodReference Method { get { return this.m_Method; } }
+        public MethodReference Instance { get { return this.m_Instance; } }
+        public MethodReference Argument { get { return this.m_Argument; } }
+        public MethodReference Begin { get { return this.m_Begin; } }
+        public MethodReference Continue { get { return this.m_Continue; } }
+        public MethodReference Await { get { return this.m_Await; } }
         public Feedback Void { get { return this.m_Void; } }
         public Feedback Value { get { return this.m_Value; } }
 
         public class Feedback
         {
-            private MethodDefinition m_Return;
-            private MethodDefinition m_Throw;
+            private MethodReference m_Return;
+            private MethodReference m_Throw;
 
-            public Feedback(MethodDefinition @return, MethodDefinition @throw)
+            public Feedback(MethodReference @return, MethodReference @throw)
             {
                 this.m_Return = @return;
                 this.m_Throw = @throw;
             }
 
-            public MethodDefinition Return { get { return this.m_Return; } }
-            public MethodDefinition Throw { get { return this.m_Throw; } }
+            public MethodReference Return { get { return this.m_Return; } }
+            public MethodReference Throw { get { return this.m_Throw; } }
         }
     }
 }
