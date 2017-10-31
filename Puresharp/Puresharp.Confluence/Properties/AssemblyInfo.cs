@@ -34,5 +34,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-
-[assembly: InternalsVisibleTo("Puresharp, PublicKey=00240000048000009400000006020000002400005253413100040000010001000fda7bc3b26b3cc26a4274e018754fc1e3629627e257a95c44a1a769a8d6c89d6a229de5b7c346744227c31705dd27a505e1ce07de2842309e6f80bcf4ec52aeb136c4c9a7d426a22efeaa86a3df898b4330d5b4cf0390ac485bcb9000de8291a4a896ad2549682eb9e6d0e40cc9a8b330e27b0df5929178bffa1ce796b11aad")]
