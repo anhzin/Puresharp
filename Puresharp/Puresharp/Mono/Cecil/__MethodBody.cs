@@ -9,6 +9,7 @@ using Puresharp.Reflection;
 
 using ConstructorInfo = System.Reflection.ConstructorInfo;
 using MethodInfo = System.Reflection.MethodInfo;
+using FieldInfo = System.Reflection.FieldInfo;
 
 namespace Mono.Cecil
 {
@@ -49,6 +50,11 @@ namespace Mono.Cecil
         static public int Emit(this MethodBody body, OpCode instruction, VariableDefinition variable)
         {
             return body.Add(Mono.Cecil.Cil.Instruction.Create(instruction, variable));
+        }
+
+        static public int Emit(this MethodBody body, OpCode instruction, FieldInfo field)
+        {
+            return body.Add(Mono.Cecil.Cil.Instruction.Create(instruction, body.Method.DeclaringType.Module.Import(field)));
         }
 
         static public int Emit(this MethodBody body, OpCode instruction, MethodInfo method)
