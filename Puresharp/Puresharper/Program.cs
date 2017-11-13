@@ -15,6 +15,7 @@ using Puresharp.Reflection;
 using MethodBase = System.Reflection.MethodBase;
 using MethodInfo = System.Reflection.MethodInfo;
 using ParameterInfo = System.Reflection.ParameterInfo;
+using System.Threading.Tasks;
 
 namespace Puresharp
 {
@@ -280,11 +281,11 @@ namespace Puresharp
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _state));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldc_I4_0));
                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Bge, _resume));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
-                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Argument<MethodBase>.Value, Argument<ParameterInfo[]>.Value))))));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Argument<MethodBase>.Value, Argument<ParameterInfo[]>.Value))))));
                 if (_instance != null)
                 {
                     _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
@@ -321,7 +322,7 @@ namespace Puresharp
                             {
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await()))));
+                                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<Task>.Value)))));
                             }
                             else if (_operand.Name == "SetResult")
                             {

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Puresharp.Confluence
 {
@@ -14,12 +16,6 @@ namespace Puresharp.Confluence
                 public Sequence(params Advice.IBoundary[] sequence)
                 {
                     this.m_Sequence = sequence;
-                }
-
-                public void Method(MethodBase method, ParameterInfo[] signature)
-                {
-                    var _sequence = this.m_Sequence;
-                    for (var _index = 0; _index < _sequence.Length; _index++) { _sequence[_index].Method(method, signature); }
                 }
 
                 public void Instance<T>(T instance)
@@ -40,16 +36,22 @@ namespace Puresharp.Confluence
                     for (var _index = 0; _index < _sequence.Length; _index++) { _sequence[_index].Begin(); }
                 }
 
+                public void Await(MethodInfo method, ref Task task)
+                {
+                    var _sequence = this.m_Sequence;
+                    for (var _index = _sequence.Length - 1; _index >= 0; _index--) { _sequence[_index].Await(method, ref task); }
+                }
+
+                public void Await<T>(MethodInfo method, ref Task<T> task)
+                {
+                    var _sequence = this.m_Sequence;
+                    for (var _index = _sequence.Length - 1; _index >= 0; _index--) { _sequence[_index].Await(method, ref task); }
+                }
+
                 public void Continue()
                 {
                     var _sequence = this.m_Sequence;
                     for (var _index = 0; _index < _sequence.Length; _index++) { _sequence[_index].Continue(); }
-                }
-
-                public void Await()
-                {
-                    var _sequence = this.m_Sequence;
-                    for (var _index = _sequence.Length - 1; _index >= 0; _index--) { _sequence[_index].Await(); }
                 }
 
                 public void Return()

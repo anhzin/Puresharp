@@ -5,6 +5,7 @@ using System.Reflection;
 using Puresharp.Confluence;
 using Puresharp.Sample;
 using Puresharp.Sample.Library;
+using System.Threading.Tasks;
 
 namespace Puresharp.Sample.Console
 {
@@ -67,7 +68,11 @@ namespace Puresharp.Sample.Console
         {
         }
 
-        public void Await()
+        public void Await(MethodInfo method, Task task)
+        {
+        }
+
+        public void Await<T>(MethodInfo method, Task<T> task)
         {
         }
     }

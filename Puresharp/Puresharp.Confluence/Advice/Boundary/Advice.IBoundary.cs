@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Puresharp.Confluence
 {
@@ -7,12 +9,12 @@ namespace Puresharp.Confluence
     {
         public interface IBoundary : IDisposable
         {
-            void Method(MethodBase method, ParameterInfo[] signature);
             void Instance<T>(T instance);
             void Argument<T>(ParameterInfo parameter, ref T value);
             void Begin();
+            void Await(MethodInfo method, ref Task task);
+            void Await<T>(MethodInfo method, ref Task<T> task);
             void Continue();
-            void Await();
             void Return();
             void Throw(ref Exception exception);
             void Return<T>(ref T value);

@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Puresharp.Confluence
 {
@@ -19,10 +20,6 @@ namespace Puresharp.Confluence
                         this.m_Action = action;
                     }
 
-                    void Advice.IBoundary.Method(MethodBase method, ParameterInfo[] signature)
-                    {
-                    }
-
                     void Advice.IBoundary.Instance<T>(T instance)
                     {
                     }
@@ -35,11 +32,15 @@ namespace Puresharp.Confluence
                     {
                     }
 
-                    void Advice.IBoundary.Continue()
+                    void Advice.IBoundary.Await(MethodInfo method, ref Task task)
                     {
                     }
 
-                    void Advice.IBoundary.Await()
+                    void Advice.IBoundary.Await<T>(MethodInfo method, ref Task<T> task)
+                    {
+                    }
+
+                    void Advice.IBoundary.Continue()
                     {
                     }
 

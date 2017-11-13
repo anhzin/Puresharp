@@ -58,7 +58,7 @@ namespace Puresharp.Confluence
                     var _advice = advice(_signature.Instance == null ? null : _signature.Instance.IsValueType ? Expression.Convert(_instance, _signature.Instance) : Expression.TypeAs(_instance, _signature.Instance), new Collection<Expression>(_signature.Parameters.Select((_Parameter, _Index) => _Parameter.IsValueType ? Expression.Convert(Expression.ArrayIndex(_arguments, Expression.Constant(_Index, Metadata<int>.Type)), _Parameter) : Expression.TypeAs(Expression.ArrayIndex(_arguments, Expression.Constant(_Index, Metadata<int>.Type)), _Parameter)).ToArray()), _type== Runtime.Void ? null : _type.IsValueType ? Expression.Convert(_return, _Method.ReturnType()) : Expression.TypeAs(_return, _type));
                     if (_advice == null) { return null; }
                     if (_advice.Type != Runtime.Void) { throw new NotSupportedException(); }
-                    return _Boundary.Combine(new Advice.Boundary.Advanced.After.Returning.Singleton(Expression.Lambda<Action<object, object[], object>>(_advice, _instance, _arguments, _return).Compile()));
+                    return _Boundary.Combine(new Advice.Boundary.Advanced.After.Returning.Singleton(_Method, Expression.Lambda<Action<object, object[], object>>(_advice, _instance, _arguments, _return).Compile()));
                 }
                 else
                 {

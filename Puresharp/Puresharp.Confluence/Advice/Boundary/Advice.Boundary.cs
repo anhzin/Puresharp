@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Puresharp.Confluence
 {
@@ -7,10 +9,6 @@ namespace Puresharp.Confluence
     {
         public partial class Boundary : Advice.IBoundary
         {
-            virtual public void Method(MethodBase method, ParameterInfo[] signature)
-            {
-            }
-
             virtual public void Instance<T>(T instance)
             {
             }
@@ -23,11 +21,15 @@ namespace Puresharp.Confluence
             {
             }
 
-            virtual public void Continue()
+            virtual public void Await(MethodInfo method, ref Task task)
             {
             }
 
-            virtual public void Await()
+            public virtual void Await<T>(MethodInfo method, ref Task<T> task)
+            {
+            }
+
+            public virtual void Continue()
             {
             }
 

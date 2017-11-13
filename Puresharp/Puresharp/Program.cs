@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime;
@@ -9,12 +11,14 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Puresharp;
+using Puresharp.Confluence;
 using Puresharp.Reflection;
 
+using Assembly = System.Reflection.Assembly;
 using MethodBase = System.Reflection.MethodBase;
 using MethodInfo = System.Reflection.MethodInfo;
 using ParameterInfo = System.Reflection.ParameterInfo;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Puresharp
 {
@@ -26,7 +30,7 @@ namespace Puresharp
 
         static private readonly MethodInfo GetMethodHandle = Metadata<MethodBase>.Property(_Method => _Method.MethodHandle).GetGetMethod();
         static private readonly MethodInfo GetFunctionPointer = Metadata<RuntimeMethodHandle>.Method(_Method => _Method.GetFunctionPointer());
-        static private readonly MethodInfo CreateDelegate = Puresharp.Reflection.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
+        static private readonly MethodInfo CreateDelegate = Reflection.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
         static private readonly List<AssemblyDefinition> m_Lifecycles = new List<AssemblyDefinition>();
 
         static public void Main(string[] arguments)
@@ -69,6 +73,9 @@ namespace Puresharp
             var _resolver = new DefaultAssemblyResolver();
             _resolver.AddSearchDirectory(Path.GetDirectoryName(assembly));
             var _assembly = AssemblyDefinition.ReadAssembly(assembly, new ReaderParameters() { AssemblyResolver = _resolver, ReadSymbols = true, ReadingMode = ReadingMode.Immediate });
+            var _name = typeof(Aspect).Assembly.GetName().Name;
+            var _version = typeof(Aspect).Assembly.GetName().Version.Major.ToString();
+            _assembly.Attribute(() => new System.Reflection.AssemblyMetadataAttribute(_name, _version));
             var _module = _assembly.MainModule;
             foreach (var _type in _module.GetTypes().ToArray()) { Program.Manage(_type); }
             _assembly.Write(assembly, new WriterParameters { WriteSymbols = true });
@@ -97,318 +104,62 @@ namespace Puresharp
         static private void Confluence(this AssemblyDefinition assembly)
         {
             if (Program.m_Lifecycles.Contains(assembly)) { return; }
-            Program.m_Lifecycles.Add(assembly);
             var _module = assembly.MainModule.Types.First(_Type => _Type.Name == Program.Module);
-            var _lazy = _module.Field<Lazy<System.Reflection.Assembly>>("<Puresharp.Confluence>", FieldAttributes.Static | FieldAttributes.Private);
-            var _make = _module.Method<System.Reflection.Assembly>("<Puresharp.Confluence<Fake.Make>>", MethodAttributes.Static | MethodAttributes.Private);
-            _make.Body.Variable<System.Reflection.Emit.TypeBuilder>();
-            _make.Body.Variable<System.Reflection.Emit.MethodBuilder>();
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Property(() => AppDomain.CurrentDomain).GetGetMethod());
-            _make.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence");
-            _make.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new System.Reflection.AssemblyName(Argument<string>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)System.Reflection.Emit.AssemblyBuilderAccess.Run);
-            _make.Body.Emit(OpCodes.Call, Metadata<AppDomain>.Method(_AppDomain => _AppDomain.DefineDynamicAssembly(Argument<System.Reflection.AssemblyName>.Value, Argument<System.Reflection.Emit.AssemblyBuilderAccess>.Value)));
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence");
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.AssemblyBuilder>.Method(_AssemblyBuilder => _AssemblyBuilder.DefineDynamicModule(Argument<string>.Value, Argument<bool>.Value)));
-            _make.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence.Advice");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.TypeAttributes.Class | System.Reflection.TypeAttributes.Sealed | System.Reflection.TypeAttributes.Public));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.ModuleBuilder>.Method(_ModuleBuilder => _ModuleBuilder.DefineType(Argument<string>.Value, Argument<System.Reflection.TypeAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldstr, "IBoundary");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.TypeAttributes.Interface | System.Reflection.TypeAttributes.Abstract | System.Reflection.TypeAttributes.Public));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineNestedType(Argument<string>.Value, Argument<System.Reflection.TypeAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Stloc_0);
-
-
-            //foreach => method : dup + define method!
-            //void Method(MethodBase method, ParameterInfo[] signature);
-            //void Instance< T > (T instance);
-            //void Argument< T > (ParameterInfo parameter, ref T value);
-            //void Begin();
-            //void Continue();
-            //void Await();
-            //void Return();
-            //void Throw(ref Exception exception);
-            //void Return< T > (ref T value);
-            //void Throw< T > (ref Exception exception, ref T value);
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Method");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_2);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldtoken, Metadata<MethodBase>.Type);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Ldtoken, Metadata<ParameterInfo[]>.Type);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Instance");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Stloc_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<string>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldstr, "T");
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.DefineGenericParameters(Argument<string[]>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldelem_Ref);
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.SetParameters()));
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Argument");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Stloc_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_2);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldtoken, Metadata<ParameterInfo>.Type);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<string>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldstr, "T");
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.DefineGenericParameters(Argument<string[]>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldelem_Ref);
-            _make.Body.Emit(OpCodes.Callvirt, Metadata<System.Reflection.Emit.GenericTypeParameterBuilder>.Method(_GenericTypeParameterBuilder => _GenericTypeParameterBuilder.MakeByRefType()));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.SetParameters()));
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Begin");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldsfld, Reflection.Metadata.Field(() => Type.EmptyTypes));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Continue");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldsfld, Reflection.Metadata.Field(() => Type.EmptyTypes));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Await");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldsfld, Reflection.Metadata.Field(() => Type.EmptyTypes));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Return");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldsfld, Reflection.Metadata.Field(() => Type.EmptyTypes));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Throw");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Ldtoken, Reflection.Metadata.Void);
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldtoken, Metadata<Exception>.Type.MakeByRefType());
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value, Argument<Type>.Value, Argument<Type[]>.Value)));
-            _make.Body.Emit(OpCodes.Pop);
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Return");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Stloc_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<string>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldstr, "T");
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.DefineGenericParameters(Argument<string[]>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldelem_Ref);
-            _make.Body.Emit(OpCodes.Callvirt, Metadata<System.Reflection.Emit.GenericTypeParameterBuilder>.Method(_GenericTypeParameterBuilder => _GenericTypeParameterBuilder.MakeByRefType()));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.SetParameters()));
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Ldstr, "Throw");
-            _make.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.MethodAttributes.Public | System.Reflection.MethodAttributes.Abstract | System.Reflection.MethodAttributes.HideBySig | System.Reflection.MethodAttributes.NewSlot | System.Reflection.MethodAttributes.Virtual));
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.DefineMethod(Argument<string>.Value, Argument<System.Reflection.MethodAttributes>.Value)));
-            _make.Body.Emit(OpCodes.Stloc_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_2);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<Type>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldtoken, Metadata<Exception>.Type.MakeByRefType());
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value)));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Ldloc_1);
-            _make.Body.Emit(OpCodes.Ldc_I4_1);
-            _make.Body.Emit(OpCodes.Newarr, Metadata<string>.Type);
-            _make.Body.Emit(OpCodes.Dup);
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldstr, "T");
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.DefineGenericParameters(Argument<string[]>.Value)));
-            _make.Body.Emit(OpCodes.Ldc_I4_0);
-            _make.Body.Emit(OpCodes.Ldelem_Ref);
-            _make.Body.Emit(OpCodes.Callvirt, Metadata<System.Reflection.Emit.GenericTypeParameterBuilder>.Method(_GenericTypeParameterBuilder => _GenericTypeParameterBuilder.MakeByRefType()));
-            _make.Body.Emit(OpCodes.Stelem_Ref);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.MethodBuilder>.Method(_MethodBuilder => _MethodBuilder.SetParameters()));
-
-            _make.Body.Emit(OpCodes.Ldloc_0);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.CreateType()));
-            _make.Body.Emit(OpCodes.Pop);
-            _make.Body.Emit(OpCodes.Call, Metadata<System.Reflection.Emit.TypeBuilder>.Method(_TypeBuilder => _TypeBuilder.CreateType()));
-            _make.Body.Emit(OpCodes.Callvirt, Metadata<Type>.Property(_Type => _Type.Assembly).GetGetMethod());
+            var _lazy = _module.Field<Lazy<Assembly>>("<Puresharp.Confluence>", FieldAttributes.Static | FieldAttributes.Private);
+            Program.m_Lifecycles.Add(assembly);
+            var _make = _module.Method<Assembly>("<Puresharp.Confluence<Fake.Make>>", MethodAttributes.Static | MethodAttributes.Private);
+            _make.Body.Emit(OpCodes.Ldstr, Convert.ToBase64String(File.ReadAllBytes(typeof(Advice.IBoundary).Assembly.Location)));
+            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Convert.FromBase64String(Argument<string>.Value)));
+            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Assembly.Load(Argument<byte[]>.Value)));
             _make.Body.Emit(OpCodes.Ret);
-            var _fake = _module.Method<System.Reflection.Assembly>("<Puresharp.Confluence<Fake>>", MethodAttributes.Static | MethodAttributes.Private);
+            var _fake = _module.Method<Assembly>("<Puresharp.Confluence<Fake>>", MethodAttributes.Static | MethodAttributes.Private);
             _fake.Parameter<object>("sender");
             _fake.Parameter<ResolveEventArgs>("arguments");
             _fake.Body.Emit(OpCodes.Ldarg_1);
             _fake.Body.Emit(OpCodes.Call, Metadata<ResolveEventArgs>.Property(_ResolveEventArgs => _ResolveEventArgs.Name).GetGetMethod());
-            _fake.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence");
-            var _return = Instruction.Create(OpCodes.Ret);
-            _fake.Body.Emit(OpCodes.Ceq);
-            _fake.Body.Emit(OpCodes.Brfalse, _return);
+            _fake.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a040f522acb22b09");
+            var _null = Instruction.Create(OpCodes.Ldnull);
+            _fake.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => string.Equals(Argument<string>.Value, Argument<string>.Value)));
+            _fake.Body.Emit(OpCodes.Brfalse, _null);
             _fake.Body.Emit(OpCodes.Ldsfld, _lazy);
-            _fake.Body.Emit(OpCodes.Call, Metadata<Lazy<System.Reflection.Assembly>>.Property(_Lazy => _Lazy.Value).GetGetMethod());
-            _fake.Body.Add(_return);
+            _fake.Body.Emit(OpCodes.Call, Metadata<Lazy<Assembly>>.Property(_Lazy => _Lazy.Value).GetGetMethod());
+            _fake.Body.Emit(OpCodes.Ret);
+            _fake.Body.Add(_null);
+            _fake.Body.Emit(OpCodes.Ret);
             var _initializer = _module.Initializer();
+            _initializer.Body.Emit(OpCodes.Ldnull);
             _initializer.Body.Emit(OpCodes.Ldftn, _make);
+            _initializer.Body.Emit(OpCodes.Newobj, Metadata<Func<Assembly>>.Type.GetConstructors().Single());
             _initializer.Body.Emit(OpCodes.Ldc_I4, (int)System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
-            _initializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Lazy<System.Reflection.Assembly>(Argument<Func<System.Reflection.Assembly>>.Value, Argument<System.Threading.LazyThreadSafetyMode>.Value)));
+            _initializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Lazy<Assembly>(Argument<Func<Assembly>>.Value, Argument<System.Threading.LazyThreadSafetyMode>.Value)));
             _initializer.Body.Emit(OpCodes.Stsfld, _lazy);
             _initializer.Body.Emit(OpCodes.Call, Reflection.Metadata.Property(() => AppDomain.CurrentDomain).GetGetMethod());
+            _initializer.Body.Emit(OpCodes.Ldnull);
             _initializer.Body.Emit(OpCodes.Ldftn, _fake);
             _initializer.Body.Emit(OpCodes.Newobj, typeof(ResolveEventHandler).GetConstructors().Single());
             _initializer.Body.Emit(OpCodes.Callvirt, typeof(AppDomain).GetMethod("add_AssemblyResolve", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public));
             _initializer.Body.Emit(OpCodes.Ret);
         }
 
-        static private Lifecycle Lifecycle(this ModuleDefinition module)
-        {
-            module.Assembly.Confluence();
-            return new Lifecycle
-            (
-                module.Import(typeof(Puresharp.Confluence.Advice.IBoundary)),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Method(Argument<MethodBase>.Value, Argument<ParameterInfo[]>.Value))),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Instance(Argument<object>.Value)).GetGenericMethodDefinition()),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Begin())),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Await())),
-                module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Continue())),
-                new Lifecycle.Feedback
-                (
-                    module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Return())),
-                    module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value)))
-                ),
-                new Lifecycle.Feedback
-                (
-                    module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Return(ref Argument<object>.Value)).GetGenericMethodDefinition()),
-                    module.Import(Metadata<Puresharp.Confluence.Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition())
-                )
-            );
-        }
-
-        //static private Lifecycle Lifecycle(this AssemblyDefinition assembly, ModuleDefinition module)
+        //static private Boundary Boundary(this ModuleDefinition module)
         //{
-        //    var _lifecycle = Program.m_Lifecycles.GetValue(assembly, _Assembly =>
-        //    {
-        //        var _module = assembly.MainModule;
-        //        var _type = _module.Type("ILifecycle", TypeAttributes.Interface | TypeAttributes.Public);
-        //        return new Lifecycle
-        //        (
-        //            _type,
-        //            _type.Method("Method", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineParameter<MethodBase>("method").DefineParameter<ParameterInfo[]>("signature"),
-        //            _type.Method("Instance", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineGenericParameter("instance", "T"),
-        //            _type.Method("Argument", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineParameter<ParameterInfo>("parameter").DefineGenericReferenceParameter("value", "T"),
-        //            _type.Method("Begin", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
-        //            _type.Method("Await", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
-        //            _type.Method("Continue", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
-        //            new Lifecycle.Feedback
-        //            (
-        //                _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract),
-        //                _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineReferenceParameter<Exception>("exception")
-        //            ),
-        //            new Lifecycle.Feedback
-        //            (
-        //                _type.Method("Return", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineGenericReferenceParameter("value", "T"),
-        //                _type.Method("Throw", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract).DefineReferenceParameter<Exception>("exception").DefineGenericReferenceParameter("value", "T")
-        //            )
-        //        );
-        //    });
-        //    return new Lifecycle
+        //    return new Boundary
         //    (
-        //        module.Import(_lifecycle.Type),
-        //        module.Import(_lifecycle.Method),
-        //        module.Import(_lifecycle.Instance),
-        //        module.Import(_lifecycle.Argument),
-        //        module.Import(_lifecycle.Begin),
-        //        module.Import(_lifecycle.Await),
-        //        module.Import(_lifecycle.Continue),
-        //        new Lifecycle.Feedback
+        //        module.Import(typeof(Advice.IBoundary)),
+        //        module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Instance(Argument<object>.Value)).GetGenericMethodDefinition()),
+        //        module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Argument(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()),
+        //        module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Begin())),
+        //        module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<Task>.Value))),
+        //        module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue())),
+        //        new Boundary.Feedback
         //        (
-        //            module.Import(_lifecycle.Void.Return),
-        //            module.Import(_lifecycle.Void.Throw)
+        //            module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return())),
+        //            module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value)))
         //        ),
-        //        new Lifecycle.Feedback
+        //        new Boundary.Feedback
         //        (
-        //            module.Import(_lifecycle.Value.Return),
-        //            module.Import(_lifecycle.Value.Throw)
+        //            module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return(ref Argument<object>.Value)).GetGenericMethodDefinition()),
+        //            module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition())
         //        )
         //    );
         //}
@@ -442,7 +193,7 @@ namespace Puresharp
             _body.InitLocals = method.Body.InitLocals;
             foreach (var _variable in method.Body.Variables) { _body.Add(new VariableDefinition(_variable.Name, _copy[_variable.VariableType])); }
             _copy.Variation = _body.Variables.ToArray();
-            foreach (var _instruction in method.Body.Instructions) { _body.Instructions.Add(_copy[_instruction]); }
+            foreach (var _instruction in method.Body.Instructions) { _body.Instructions.Add(_copy[_instruction, method.Module]); }
 
             //TODO : for virtual method => replace base call to "pure path"!
             if (method.IsVirtual)
@@ -456,11 +207,11 @@ namespace Puresharp
                 _body.ExceptionHandlers.Add(new ExceptionHandler(_exception.HandlerType)
                 {
                     CatchType = _exception.CatchType,
-                    TryStart = _copy[_exception.TryStart],
-                    TryEnd = _copy[_exception.TryEnd],
+                    TryStart = _copy[_exception.TryStart, method.Module],
+                    TryEnd = _copy[_exception.TryEnd, method.Module],
                     HandlerType = _exception.HandlerType,
-                    HandlerStart = _copy[_exception.HandlerStart],
-                    HandlerEnd = _copy[_exception.HandlerEnd]
+                    HandlerStart = _copy[_exception.HandlerStart, method.Module],
+                    HandlerEnd = _copy[_exception.HandlerEnd, method.Module]
                 });
             }
             method.Body.OptimizeMacros();
@@ -572,21 +323,18 @@ namespace Puresharp
             method.Body.OptimizeMacros();
             if (_machine != null)
             {
+                Program.Confluence(method.Module.Assembly);
                 var _type = _machine.ConstructorArguments[0].Value as TypeDefinition;
 
                 //get from appdomain => factory of factory to define initial factory!
                 //Generate custom delegate to ref delegate :-(
                 //TODO Virtuoze => replace boundary/factory by delegate/delegate factory for each method.
-                var _lifecycle = _type.Module.Lifecycle();
-                var _factory = _type.Field("<Factory>", FieldAttributes.Public | FieldAttributes.Static, _type.Module.Import(typeof(Func<>)).MakeGenericInstanceType(_lifecycle.Type));
-                var _boundary = _type.Field("<Boundary>", FieldAttributes.Public, _lifecycle.Type);
-
+                //var _lifecycle = _type.Module.Boundary();
+                var _factory = _type.Field<Advice.Boundary.IFactory>("<Factory>", FieldAttributes.Public | FieldAttributes.Static);
+                var _boundary = _type.Field<Advice.IBoundary>("<Boundary>", FieldAttributes.Public);
                 _type.IsBeforeFieldInit = true;
                 var _intializer = _type.Initializer();
-
-                //_intializer.Body.Emit(OpCodes.Newobj, Puresharp.Reflection.Metadata.Constructor(() => new Advice.Boundary.Factory())); //TODO Virtuoze => get data from appdomain to detect default boundary for method! if null => instantiate ABF
-                _intializer.Body.Emit(OpCodes.Ldnull);
-
+                _intializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Advice.Boundary.Factory())); //TODO Virtuoze => get data from appdomain to detect default boundary for method! if null => instantiate ABF
                 _intializer.Body.Emit(OpCodes.Stsfld, _factory.Relative());
                 _intializer.Body.Emit(OpCodes.Ret);
                 var _constructor = _type.Methods.Single(m => m.IsConstructor && !m.IsStatic);
@@ -595,53 +343,50 @@ namespace Puresharp
                 _constructor.Body.Emit(OpCodes.Call, Puresharp.Reflection.Metadata.Constructor(() => new object()));
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
                 _constructor.Body.Emit(OpCodes.Ldsfld, _constructor.Module.Import(_factory.Relative()));
-                //_constructor.Body.Emit(OpCodes.Pop);
-
-                ////_constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
-                _constructor.Body.Emit(OpCodes.Call, new MethodReference("Invoke", _lifecycle.Type, _factory.FieldType));
-
+                _constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
                 _constructor.Body.Emit(OpCodes.Stfld, _boundary.Relative());
                 _constructor.Body.Emit(OpCodes.Ret);
                 var _move = _type.Methods.Single(_Method => _Method.Name == "MoveNext");
+                var _task = _move.Body.Variable<Task>("<Task>");
                 var _instance = method.IsStatic ? null : _type.Fields.Single(_Field => _Field.Name == "<>4__this").Relative();
                 var _state = _type.Fields.Single(_Field => _Field.Name == "<>1__state").Relative();
                 var _builder = _type.Fields.Single(_Field => _Field.Name == "<>t__builder").Relative();
                 var _offset = 0;
                 var _begin = _move.Body.Instructions[_offset];
-                var _resume = Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0);
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _state));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldc_I4_0));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Bge, _resume));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Method))));
+                var _resume = Instruction.Create(OpCodes.Ldarg_0);
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _state));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldc_I4_0));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Bge, _resume));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == "<Signature>")));
+                //_move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Method))));
                 if (_instance != null)
                 {
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _instance));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Instance).MakeGenericMethod(method.DeclaringType))));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _instance));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Instance<object>(Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(method.DeclaringType))));
                 }
                 foreach (var _parameter in method.Parameters)
                 {
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == _parameter.Name)));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldflda, _type.Fields.First(_Field => _Field.Name == _parameter.Name).Relative()));
-                    _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Argument).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldsfld, _metadata.DeclaringType.Fields.Single(_Field => _Field.Name == _parameter.Name)));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldflda, _type.Fields.First(_Field => _Field.Name == _parameter.Name).Relative()));
+                    _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Argument<object>(Argument<ParameterInfo>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType.IsGenericParameter ? _type.GenericParameters.First(_Type => _Type.Name == _parameter.ParameterType.Name) : _parameter.ParameterType))));
                 }
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Begin)));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Br_S, _begin));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Begin()))));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Br_S, _begin));
                 _move.Body.Instructions.Insert(_offset++, _resume);
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Continue)));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
                 while (_offset < _move.Body.Instructions.Count)
                 {
                     var _instruction = _move.Body.Instructions[_offset];
@@ -652,9 +397,17 @@ namespace Puresharp
                             var _operand = _instruction.Operand as MethodReference;
                             if (_operand.Name == "GetAwaiter")
                             {
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Await)));
+                                var _action = _move.Body.Instructions[_offset - 1].Operand as MethodReference;
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Stloc, _task));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldtoken, _action));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldtoken, _action.DeclaringType));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Call, _move.Module.Import(Reflection.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value))))); //TODO Virtuoze => cache it!
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldloca, _task));
+                                if (_action.ReturnType.Resolve() == _move.Module.Import(typeof(Task)).Resolve()) { _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<MethodInfo>.Value, ref Argument<Task>.Value))))); }
+                                else { _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<MethodInfo>.Value, ref Argument<Task<object>>.Value)).GetGenericMethodDefinition()).MakeGenericMethod((_action.ReturnType as GenericInstanceType).GenericArguments[0]))); }
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldloc, _task));
                             }
                         }
                     }
@@ -666,11 +419,11 @@ namespace Puresharp
                             if (_operand.Name == "get_IsCompleted")
                             {
                                 var _continue = _move.Body.Instructions[++_offset];
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Dup));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Brfalse_S, _continue));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldarg_0));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
-                                _move.Body.Instructions.Insert(_offset++, Mono.Cecil.Cil.Instruction.Create(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Continue)));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Dup));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Brfalse_S, _continue));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldarg_0));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Continue()))));
                             }
                             else if (_operand.Name == "SetResult")
                             {
@@ -681,11 +434,11 @@ namespace Puresharp
                                     _return.Parameters.Add(_parameter);
                                     var _exception = _return.Body.Variable<Exception>("<Exception>");
                                     var _disposed = _return.Body.Variable<bool>("<Invoked>");
-                                    var _end = Mono.Cecil.Cil.Instruction.Create(OpCodes.Ret);
+                                    var _end = Instruction.Create(OpCodes.Ret);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _return.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(_lifecycle.Value.Return).MakeGenericMethod(_parameter.ParameterType)));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return(ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_parameter.ParameterType)));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
@@ -727,10 +480,10 @@ namespace Puresharp
                                 {
                                     var _exception = _return.Body.Variable<Exception>("<Exception>");
                                     var _disposed = _return.Body.Variable<bool>("<Invoked>");
-                                    var _end = Mono.Cecil.Cil.Instruction.Create(OpCodes.Ret);
+                                    var _end = Instruction.Create(OpCodes.Ret);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
                                     _return.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
-                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Void.Return));
+                                    _return.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Return())));
                                     _return.Body.Emit(OpCodes.Ldc_I4_1);
                                     _return.Body.Emit(OpCodes.Stloc_1);
                                     _return.Body.Emit(OpCodes.Ldarg_0);
@@ -782,7 +535,7 @@ namespace Puresharp
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarg_S, _parameter);
                                     _throw.Body.Emit(OpCodes.Ldloca_S, _value);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Value.Throw).MakeGenericMethod(_value.VariableType));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value, ref Argument<object>.Value)).GetGenericMethodDefinition()).MakeGenericMethod(_value.VariableType));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_1);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
@@ -832,7 +585,7 @@ namespace Puresharp
                                     _throw.Body.Emit(OpCodes.Ldarg_0);
                                     _throw.Body.Emit(OpCodes.Ldfld, _boundary.Relative());
                                     _throw.Body.Emit(OpCodes.Ldarga_S, _parameter);
-                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(_lifecycle.Void.Throw));
+                                    _throw.Body.Emit(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Throw(ref Argument<Exception>.Value))));
                                     _throw.Body.Emit(OpCodes.Ldc_I4_1);
                                     _throw.Body.Emit(OpCodes.Stloc_0);
                                     _throw.Body.Emit(OpCodes.Ldarg_0);

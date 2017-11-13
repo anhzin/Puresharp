@@ -68,7 +68,7 @@ namespace Mono.Cecil.Cil
             get { return method; }
         }
 
-        public Instruction this[Instruction instruction]
+        public Instruction this[Instruction instruction, ModuleDefinition module]
         {
             get
             {
@@ -80,17 +80,17 @@ namespace Mono.Cecil.Cil
                     if (_operand == null) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode); }
                     else if (_operand is ParameterDefinition) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this.m_Signature[_operand as ParameterDefinition]); }
                     else if (_operand is VariableDefinition) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this.m_Variation[_operand as VariableDefinition]); }
-                    else if (_operand is FieldReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this[_operand as FieldReference]); }
-                    else if (_operand is MethodReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this[_operand as MethodReference]); }
-                    else if (_operand is TypeReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this[_operand as TypeReference]); }
+                    else if (_operand is FieldReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, module.Import(this[_operand as FieldReference])); }
+                    else if (_operand is MethodReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, module.Import(this[_operand as MethodReference])); }
+                    else if (_operand is TypeReference) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, module.Import(this[_operand as TypeReference])); }
                     else if (_operand is string) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, _operand as string); }
                     else if (_operand is sbyte) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (sbyte)_operand); }
                     else if (_operand is long) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (long)_operand); }
                     else if (_operand is int) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (int)_operand); }
                     else if (_operand is float) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (float)_operand); }
                     else if (_operand is double) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (double)_operand); }
-                    else if (_operand is Instruction) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this[_operand as Instruction]); }
-                    else if (_operand is Instruction[]) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (_operand as Instruction[]).Select(_Instruction => this[_Instruction]).ToArray()); }
+                    else if (_operand is Instruction) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, this[_operand as Instruction, module]); }
+                    else if (_operand is Instruction[]) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, (_operand as Instruction[]).Select(_Instruction => this[_Instruction, module]).ToArray()); }
                     else if (_operand is CallSite) { _instruction = Mono.Cecil.Cil.Instruction.Create(instruction.OpCode, _operand as CallSite); }
                     else { throw new NotSupportedException(); }
                     var _sequence = instruction.SequencePoint;

@@ -72,7 +72,6 @@
     <Compile Include="Advice\Boundary\Advanced\Before\Advice.Boundary.Advanced.Before.Singleton.cs" />
     <Compile Include="Advice\Boundary\Advanced\Before\Advice.Boundary.Advanced.Before.Volatile.cs" />
     <Compile Include="Advice\Boundary\Advice.Boundary.cs" />
-    <Compile Include="Advice\Boundary\Advice.Boundary.Legacy.cs" />
     <Compile Include="Advice\Boundary\Advice.IBoundary.cs" />
     <Compile Include="Advice\Boundary\Basic\Advice.Boundary.Basic.cs" />
     <Compile Include="Advice\Boundary\Basic\After\Advice.Boundary.Basic.After.cs" />
