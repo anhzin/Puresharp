@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using Puresharp.Discovery;
 
 namespace ConsoleApplication3
 {
@@ -56,13 +57,35 @@ namespace ConsoleApplication3
         }
     }
 
+    public class Boundary2 : Advice.Boundary
+    {
+        public override void Begin()
+        {
+        }
+    }
+
+    public class Aspect1 : Aspect
+    {
+        public override IEnumerable<Advice> Advise(MethodBase method)
+        {
+            yield return Advice.Basic.Before(() => Console.WriteLine(method.Name));
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("TestAsync"));
+            Metadata.Methods.Discovered += new Metadata.Listener<MethodInfo>(_Method =>
+            {
+                Aspect.Weave<Aspect<Boundary1>>(_Method);
+            });
+
+            //Aspect.Weave<Aspect<Boundary1>>(typeof(Calculator).GetMethod("Add"));
+            //Aspect.Weave<Aspect<Boundary2>>(typeof(Calculator).GetMethod("Add"));
+            //Aspect.Weave<Aspect1>(typeof(Calculator).GetMethod("Add"));
             var c = new Calculator();
-            var gg = c.TestAsync(3, 2);
+            var gg = c.Add(3, 2);
         }
     }
 }

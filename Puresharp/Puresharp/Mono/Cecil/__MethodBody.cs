@@ -5,7 +5,7 @@ using Mono.Cecil.Cil;
 using Mono.Collections;
 using Mono.Collections.Generic;
 using Puresharp;
-using Puresharp.Reflection;
+using Puresharp.Discovery;
 
 using ConstructorInfo = System.Reflection.ConstructorInfo;
 using MethodInfo = System.Reflection.MethodInfo;
@@ -15,8 +15,8 @@ namespace Mono.Cecil
 {
     static internal class __MethodBody
     {
-        static private readonly MethodInfo GetTypeFromHandle = Puresharp.Reflection.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value));
-        static private readonly MethodInfo GetMethodFromHandle = Puresharp.Reflection.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetTypeFromHandle = Puresharp.Discovery.Metadata.Method(() => Type.GetTypeFromHandle(Argument<RuntimeTypeHandle>.Value));
+        static private readonly MethodInfo GetMethodFromHandle = Puresharp.Discovery.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value));
 
         static public int Add(this MethodBody body, Mono.Cecil.Cil.Instruction instruction)
         {
@@ -35,6 +35,21 @@ namespace Mono.Cecil
         static public IDisposable False(this MethodBody body)
         {
             return new Branch(body, OpCodes.Brtrue).Begin();
+        }
+
+        static public IDisposable Lock(this MethodBody body, FieldInfo field)
+        {
+            return new Lock(body, body.Method.Module.Import(field));
+        }
+
+        static public IDisposable Lock(this MethodBody body, FieldReference field)
+        {
+            return new Lock(body, field);
+        }
+
+        static public int Emit(this MethodBody body, Instruction instruction)
+        {
+            return body.Add(instruction);
         }
 
         static public int Emit(this MethodBody body, OpCode instruction)
@@ -114,10 +129,20 @@ namespace Mono.Cecil
             return body.Add(Mono.Cecil.Cil.Instruction.Create(instruction, body.Method.DeclaringType.Module.Import(constructor)));
         }
 
+        static public int Emit(this MethodBody body, Type type)
+        {
+            return body.Emit(body.Method.DeclaringType.Module.Import(type));
+        }
+
         static public int Emit(this MethodBody body, TypeReference type)
         {
             body.Emit(OpCodes.Ldtoken, type);
             return body.Emit(OpCodes.Call, __MethodBody.GetTypeFromHandle);
+        }
+
+        static public int Emit(this MethodBody body, MethodInfo method)
+        {
+            return body.Emit(body.Method.DeclaringType.Module.Import(method));
         }
 
         static public int Emit(this MethodBody body, MethodReference method)

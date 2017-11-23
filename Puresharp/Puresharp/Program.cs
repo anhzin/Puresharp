@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Mono.Cecil;
@@ -12,26 +14,24 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Puresharp;
 using Puresharp.Confluence;
-using Puresharp.Reflection;
+using Puresharp.Discovery;
 
 using Assembly = System.Reflection.Assembly;
 using MethodBase = System.Reflection.MethodBase;
 using MethodInfo = System.Reflection.MethodInfo;
 using ParameterInfo = System.Reflection.ParameterInfo;
-using System.Threading.Tasks;
 
 namespace Puresharp
 {
     static public class Program
     {
-        private const string Neptune = "<Neptune>";
+        private const string Puresharp = "<Puresharp>";
         public const string Module = "<Module>";
-        public const string Pointer = "<Pointer>";
 
         static private readonly MethodInfo GetMethodHandle = Metadata<MethodBase>.Property(_Method => _Method.MethodHandle).GetGetMethod();
         static private readonly MethodInfo GetFunctionPointer = Metadata<RuntimeMethodHandle>.Method(_Method => _Method.GetFunctionPointer());
-        static private readonly MethodInfo CreateDelegate = Reflection.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
-        static private readonly List<AssemblyDefinition> m_Lifecycles = new List<AssemblyDefinition>();
+        static private readonly MethodInfo CreateDelegate = Discovery.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value));
+        static private readonly List<AssemblyDefinition> m_Inclusion = new List<AssemblyDefinition>();
 
         static public void Main(string[] arguments)
         {
@@ -101,39 +101,87 @@ namespace Puresharp
             }
         }
 
-        static private void Confluence(this AssemblyDefinition assembly)
+        //static private void Confluence(this AssemblyDefinition assembly)
+        //{
+        //    if (Program.m_Lifecycles.Contains(assembly)) { return; }
+        //    var _module = assembly.MainModule.Types.First(_Type => _Type.Name == Program.Module);
+        //    var _lazy = _module.Field<Lazy<Assembly>>("<Puresharp.Confluence>", FieldAttributes.Static | FieldAttributes.Private);
+        //    Program.m_Lifecycles.Add(assembly);
+        //    var _make = _module.Method<Assembly>("<Puresharp.Confluence<Fake.Make>>", MethodAttributes.Static | MethodAttributes.Private);
+        //    _make.Body.Emit(OpCodes.Ldstr, Convert.ToBase64String(File.ReadAllBytes(typeof(Advice.IBoundary).Assembly.Location)));
+        //    _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Convert.FromBase64String(Argument<string>.Value)));
+        //    _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Assembly.Load(Argument<byte[]>.Value)));
+        //    _make.Body.Emit(OpCodes.Ret);
+        //    var _fake = _module.Method<Assembly>("<Puresharp.Confluence<Fake>>", MethodAttributes.Static | MethodAttributes.Private);
+        //    _fake.Parameter<object>("sender");
+        //    _fake.Parameter<ResolveEventArgs>("arguments");
+        //    _fake.Body.Emit(OpCodes.Ldarg_1);
+        //    _fake.Body.Emit(OpCodes.Call, Metadata<ResolveEventArgs>.Property(_ResolveEventArgs => _ResolveEventArgs.Name).GetGetMethod());
+        //    _fake.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a040f522acb22b09");
+        //    var _null = Instruction.Create(OpCodes.Ldnull);
+        //    _fake.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => string.Equals(Argument<string>.Value, Argument<string>.Value)));
+        //    _fake.Body.Emit(OpCodes.Brfalse, _null);
+        //    _fake.Body.Emit(OpCodes.Ldsfld, _lazy);
+        //    _fake.Body.Emit(OpCodes.Call, Metadata<Lazy<Assembly>>.Property(_Lazy => _Lazy.Value).GetGetMethod());
+        //    _fake.Body.Emit(OpCodes.Ret);
+        //    _fake.Body.Add(_null);
+        //    _fake.Body.Emit(OpCodes.Ret);
+        //    var _initializer = _module.Initializer();
+        //    _initializer.Body.Emit(OpCodes.Ldnull);
+        //    _initializer.Body.Emit(OpCodes.Ldftn, _make);
+        //    _initializer.Body.Emit(OpCodes.Newobj, Metadata<Func<Assembly>>.Type.GetConstructors().Single());
+        //    _initializer.Body.Emit(OpCodes.Ldc_I4, (int)System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
+        //    _initializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Lazy<Assembly>(Argument<Func<Assembly>>.Value, Argument<System.Threading.LazyThreadSafetyMode>.Value)));
+        //    _initializer.Body.Emit(OpCodes.Stsfld, _lazy);
+        //    _initializer.Body.Emit(OpCodes.Call, Reflection.Metadata.Property(() => AppDomain.CurrentDomain).GetGetMethod());
+        //    _initializer.Body.Emit(OpCodes.Ldnull);
+        //    _initializer.Body.Emit(OpCodes.Ldftn, _fake);
+        //    _initializer.Body.Emit(OpCodes.Newobj, typeof(ResolveEventHandler).GetConstructors().Single());
+        //    _initializer.Body.Emit(OpCodes.Callvirt, typeof(AppDomain).GetMethod("add_AssemblyResolve", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public));
+        //    _initializer.Body.Emit(OpCodes.Ret);
+        //}
+
+        static private void Include(this AssemblyDefinition assembly, params Assembly[] dependencies)
         {
-            if (Program.m_Lifecycles.Contains(assembly)) { return; }
+            if (Program.m_Inclusion.Contains(assembly)) { return; }
             var _module = assembly.MainModule.Types.First(_Type => _Type.Name == Program.Module);
-            var _lazy = _module.Field<Lazy<Assembly>>("<Puresharp.Confluence>", FieldAttributes.Static | FieldAttributes.Private);
-            Program.m_Lifecycles.Add(assembly);
-            var _make = _module.Method<Assembly>("<Puresharp.Confluence<Fake.Make>>", MethodAttributes.Static | MethodAttributes.Private);
-            _make.Body.Emit(OpCodes.Ldstr, Convert.ToBase64String(File.ReadAllBytes(typeof(Advice.IBoundary).Assembly.Location)));
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Convert.FromBase64String(Argument<string>.Value)));
-            _make.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => Assembly.Load(Argument<byte[]>.Value)));
-            _make.Body.Emit(OpCodes.Ret);
-            var _fake = _module.Method<Assembly>("<Puresharp.Confluence<Fake>>", MethodAttributes.Static | MethodAttributes.Private);
+            var _initializer = _module.Initializer();
+
+            var _fake = _module.Method<Assembly>("<Puresharp<Fake>>", MethodAttributes.Static | MethodAttributes.Private);
             _fake.Parameter<object>("sender");
             _fake.Parameter<ResolveEventArgs>("arguments");
-            _fake.Body.Emit(OpCodes.Ldarg_1);
-            _fake.Body.Emit(OpCodes.Call, Metadata<ResolveEventArgs>.Property(_ResolveEventArgs => _ResolveEventArgs.Name).GetGetMethod());
-            _fake.Body.Emit(OpCodes.Ldstr, "Puresharp.Confluence, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a040f522acb22b09");
-            var _null = Instruction.Create(OpCodes.Ldnull);
-            _fake.Body.Emit(OpCodes.Call, Reflection.Metadata.Method(() => string.Equals(Argument<string>.Value, Argument<string>.Value)));
-            _fake.Body.Emit(OpCodes.Brfalse, _null);
-            _fake.Body.Emit(OpCodes.Ldsfld, _lazy);
-            _fake.Body.Emit(OpCodes.Call, Metadata<Lazy<Assembly>>.Property(_Lazy => _Lazy.Value).GetGetMethod());
+
+            foreach (var _dependency in dependencies)
+            {
+                var _lazy = _module.Field<Lazy<Assembly>>($"<{ _dependency.GetName().Name }>", FieldAttributes.Static | FieldAttributes.Private);
+                Program.m_Inclusion.Add(assembly);
+                var _make = _module.Method<Assembly>($"<{ _dependency.GetName().Name }<Make>>", MethodAttributes.Static | MethodAttributes.Private);
+                _make.Body.Emit(OpCodes.Ldstr, Convert.ToBase64String(File.ReadAllBytes(_dependency.Location)));
+                _make.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => Convert.FromBase64String(Argument<string>.Value)));
+                _make.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => Assembly.Load(Argument<byte[]>.Value)));
+                _make.Body.Emit(OpCodes.Ret);
+               
+                _fake.Body.Emit(OpCodes.Ldarg_1);
+                _fake.Body.Emit(OpCodes.Call, Metadata<ResolveEventArgs>.Property(_ResolveEventArgs => _ResolveEventArgs.Name).GetGetMethod());
+                _fake.Body.Emit(OpCodes.Ldstr, _dependency.FullName);
+                _fake.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => string.Equals(Argument<string>.Value, Argument<string>.Value)));
+                using (_fake.Body.True())
+                {
+                    _fake.Body.Emit(OpCodes.Ldsfld, _lazy);
+                    _fake.Body.Emit(OpCodes.Call, Metadata<Lazy<Assembly>>.Property(_Lazy => _Lazy.Value).GetGetMethod());
+                    _fake.Body.Emit(OpCodes.Ret);
+                }
+                _initializer.Body.Emit(OpCodes.Ldnull);
+                _initializer.Body.Emit(OpCodes.Ldftn, _make);
+                _initializer.Body.Emit(OpCodes.Newobj, Metadata<Func<Assembly>>.Type.GetConstructors().Single());
+                _initializer.Body.Emit(OpCodes.Ldc_I4, (int)LazyThreadSafetyMode.ExecutionAndPublication);
+                _initializer.Body.Emit(OpCodes.Newobj, Discovery.Metadata.Constructor(() => new Lazy<Assembly>(Argument<Func<Assembly>>.Value, Argument<LazyThreadSafetyMode>.Value)));
+                _initializer.Body.Emit(OpCodes.Stsfld, _lazy);
+            }
+            _fake.Body.Emit(OpCodes.Ldnull);
             _fake.Body.Emit(OpCodes.Ret);
-            _fake.Body.Add(_null);
-            _fake.Body.Emit(OpCodes.Ret);
-            var _initializer = _module.Initializer();
-            _initializer.Body.Emit(OpCodes.Ldnull);
-            _initializer.Body.Emit(OpCodes.Ldftn, _make);
-            _initializer.Body.Emit(OpCodes.Newobj, Metadata<Func<Assembly>>.Type.GetConstructors().Single());
-            _initializer.Body.Emit(OpCodes.Ldc_I4, (int)System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
-            _initializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Lazy<Assembly>(Argument<Func<Assembly>>.Value, Argument<System.Threading.LazyThreadSafetyMode>.Value)));
-            _initializer.Body.Emit(OpCodes.Stsfld, _lazy);
-            _initializer.Body.Emit(OpCodes.Call, Reflection.Metadata.Property(() => AppDomain.CurrentDomain).GetGetMethod());
+
+            _initializer.Body.Emit(OpCodes.Call, Discovery.Metadata.Property(() => AppDomain.CurrentDomain).GetGetMethod());
             _initializer.Body.Emit(OpCodes.Ldnull);
             _initializer.Body.Emit(OpCodes.Ldftn, _fake);
             _initializer.Body.Emit(OpCodes.Newobj, typeof(ResolveEventHandler).GetConstructors().Single());
@@ -166,8 +214,8 @@ namespace Puresharp
 
         static private TypeDefinition Authority(this TypeDefinition type)
         {
-            foreach (var _type in type.NestedTypes) { if (_type.Name == Program.Neptune) { return _type; } }
-            return type.Type(Program.Neptune, TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.NestedAssembly | TypeAttributes.BeforeFieldInit | TypeAttributes.SpecialName);
+            foreach (var _type in type.NestedTypes) { if (_type.Name == Program.Puresharp) { return _type; } }
+            return type.Type(Program.Puresharp, TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.NestedAssembly | TypeAttributes.BeforeFieldInit | TypeAttributes.SpecialName);
         }
 
         static private TypeDefinition Authority(this TypeDefinition type, string name)
@@ -223,10 +271,102 @@ namespace Puresharp
         {
             var _intermediate = method.DeclaringType.Authority("<Intermediate>").Type(method.IsConstructor ? $"<<Constructor>>" : $"<{method.Name}>", TypeAttributes.NestedPublic | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit);
             foreach (var _parameter in method.GenericParameters) { _intermediate.GenericParameters.Add(new GenericParameter(_parameter.Name, _intermediate)); }
-            var _field = _intermediate.Field<IntPtr>(Program.Pointer, FieldAttributes.Static | FieldAttributes.Public);
+            var _handle = _intermediate.Field<object>("<Handle>", FieldAttributes.Static | FieldAttributes.Public);
+            var _authentic = _intermediate.Field<IntPtr>("<Authentic>", FieldAttributes.Static | FieldAttributes.Public);
+            var _auxiliary = _intermediate.Field<IntPtr>("<Auxiliary>", FieldAttributes.Static | FieldAttributes.Public);
+            var _pointer = _intermediate.Field<IntPtr>("<Pointer>", FieldAttributes.Static | FieldAttributes.Public);
+
+            var _update = _intermediate.Method("<Update>", MethodAttributes.Static | MethodAttributes.Private);
+            _update.Parameter<IntPtr>("<Pointer>");
+            var _return = Instruction.Create(OpCodes.Ret);
+            using (_update.Body.Lock(_handle))
+            {
+                _update.Body.Emit(OpCodes.Ldsfld, _auxiliary);
+                using (_update.Body.True())
+                {
+                    _update.Body.Emit(OpCodes.Ldarg_0);
+                    _update.Body.Emit(OpCodes.Stsfld, _auxiliary);
+                    _update.Body.Emit(OpCodes.Leave, _return);
+                }
+                _update.Body.Emit(OpCodes.Ldarg_0);
+                _update.Body.Emit(OpCodes.Stsfld, _pointer);
+            }
+            _update.Body.Emit(_return);
+
+            var _copy = new Copy(method);
+            var _primary = _intermediate.Method("<Primary>", MethodAttributes.Static | MethodAttributes.Public);
+            foreach (var _attribute in method.CustomAttributes) { _primary.CustomAttributes.Add(_attribute); }
+            foreach (var _parameter in method.GenericParameters) { _primary.GenericParameters.Add(new GenericParameter(_parameter.Name, _primary)); }
+            _copy.Genericity = _primary.GenericParameters.ToArray();
+            _primary.ReturnType = _copy[method.ReturnType];
+            if (!method.IsStatic) { _primary.Parameters.Add(new ParameterDefinition("this", ParameterAttributes.None, method.DeclaringType)); }
+            foreach (var _parameter in method.Parameters) { _primary.Add(new ParameterDefinition(_parameter.Name, _parameter.Attributes, _copy[_parameter.ParameterType])); }
+            _primary.Body.Variable<IntPtr>("<Pointer>");
+            _primary.Body.Emit(OpCodes.Ldsfld, _handle);
+            _primary.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => Monitor.Enter(Argument<object>.Value)));
+
+            _primary.Body.Emit(Metadata<Action<MethodBase>>.Type);
+            _primary.Body.Emit(typeof(Metadata));
+            _primary.Body.Emit(OpCodes.Ldstr, "Broadcast");
+            _primary.Body.Emit(OpCodes.Ldc_I4, (int)(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly));
+            _primary.Body.Emit(OpCodes.Call, Metadata<Type>.Method(_Type => _Type.GetMethod(Argument<string>.Value, Argument<System.Reflection.BindingFlags>.Value)));
+            _primary.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => Delegate.CreateDelegate(Argument<Type>.Value, Argument<MethodInfo>.Value)));
+            _primary.Body.Emit(method);
+            _primary.Body.Emit(OpCodes.Callvirt, Metadata<Action<MethodBase>>.Method(_Action => _Action.Invoke(Argument<MethodBase>.Value)));
+
+            _primary.Body.Emit(OpCodes.Ldsfld, _pointer);
+            _primary.Body.Emit(OpCodes.Stloc_0);
+            _primary.Body.Emit(OpCodes.Ldsfld, _auxiliary);
+            using (_primary.Body.True())
+            {
+                _primary.Body.Emit(OpCodes.Ldsfld, _auxiliary);
+                _primary.Body.Emit(OpCodes.Stloc_0);
+                _primary.Body.Emit(OpCodes.Ldloc_0);
+                _primary.Body.Emit(OpCodes.Stsfld, _pointer);
+                _primary.Body.Emit(OpCodes.Ldsfld, Discovery.Metadata.Field(() => IntPtr.Zero));
+                _primary.Body.Emit(OpCodes.Stsfld, _auxiliary);
+            }
+
+            _primary.Body.Emit(OpCodes.Ldsfld, _handle);
+            _primary.Body.Emit(OpCodes.Call, Discovery.Metadata.Method(() => Monitor.Exit(Argument<object>.Value)));
+
+            for (var _index = 0; _index < _primary.Parameters.Count; _index++)
+            {
+                switch (_index)
+                {
+                    case 0: _primary.Body.Emit(OpCodes.Ldarg_0); break;
+                    case 1: _primary.Body.Emit(OpCodes.Ldarg_1); break;
+                    case 2: _primary.Body.Emit(OpCodes.Ldarg_2); break;
+                    case 3: _primary.Body.Emit(OpCodes.Ldarg_3); break;
+                    default: _primary.Body.Emit(OpCodes.Ldarg_S, _primary.Parameters[ _index]); break;
+                }
+            }
+            //call!
+            if (method.GenericParameters.Count == 0)
+            {
+                _primary.Body.Emit(OpCodes.Ldloc_0);
+                _primary.Body.Emit(OpCodes.Calli, method.ReturnType, authentic.Parameters);
+            }
+            else
+            {
+                var _type = new GenericInstanceType(_intermediate.DeclaringType);
+                foreach (var _parameter in method.GenericParameters) { _type.GenericArguments.Add(_parameter); }
+                _primary.Body.Emit(OpCodes.Ldloc_0);
+                var _method1 = new GenericInstanceMethod(authentic);
+                foreach (var _parameter in method.GenericParameters) { _method1.GenericArguments.Add(_parameter); }
+                _primary.Body.Emit(OpCodes.Calli, _method1.ReturnType, _method1.Parameters);
+            }
+
+
+            _primary.Body.Emit(OpCodes.Ret);
+            _primary.Body.OptimizeMacros();
+
+
             var _initializer = _intermediate.Initializer();
             var _variable = _initializer.Body.Variable<RuntimeMethodHandle>();
             _initializer.Body.Variable<Func<IntPtr>>();
+            _initializer.Body.Emit(OpCodes.Newobj, Discovery.Metadata.Constructor(() => new object()));
+            _initializer.Body.Emit(OpCodes.Stsfld, _handle);
             if (_intermediate.GenericParameters.Count == 0) //TODO Virtuoze : Replace direct init by authentic by checking appdomain.CurrentDocumain.GetData('Resolver'). => if(resolver == null) => authentic else call resolver to get pointer!
             {
                 _initializer.Body.Emit(authentic);
@@ -234,7 +374,16 @@ namespace Puresharp
                 _initializer.Body.Emit(OpCodes.Stloc_0);
                 _initializer.Body.Emit(OpCodes.Ldloca_S, _variable);
                 _initializer.Body.Emit(OpCodes.Callvirt, Program.GetFunctionPointer);
-                _initializer.Body.Emit(OpCodes.Stsfld, _field);
+                _initializer.Body.Emit(OpCodes.Stsfld, _authentic);
+                _initializer.Body.Emit(OpCodes.Ldsfld, _authentic);
+                _initializer.Body.Emit(OpCodes.Stsfld, _auxiliary);
+
+                _initializer.Body.Emit(_primary);
+                _initializer.Body.Emit(OpCodes.Callvirt, Program.GetMethodHandle);
+                _initializer.Body.Emit(OpCodes.Stloc_0);
+                _initializer.Body.Emit(OpCodes.Ldloca_S, _variable);
+                _initializer.Body.Emit(OpCodes.Callvirt, Program.GetFunctionPointer);
+                _initializer.Body.Emit(OpCodes.Stsfld, _pointer);
             }
             else
             {
@@ -243,7 +392,16 @@ namespace Puresharp
                 _initializer.Body.Emit(OpCodes.Stloc_0);
                 _initializer.Body.Emit(OpCodes.Ldloca_S, _variable);
                 _initializer.Body.Emit(OpCodes.Callvirt, Program.GetFunctionPointer);
-                _initializer.Body.Emit(OpCodes.Stsfld, new FieldReference(_field.Name, _field.FieldType, _intermediate.MakeGenericType(_intermediate.GenericParameters)));
+                _initializer.Body.Emit(OpCodes.Stsfld, new FieldReference(_authentic.Name, _authentic.FieldType, _intermediate.MakeGenericType(_intermediate.GenericParameters)));
+                _initializer.Body.Emit(OpCodes.Ldsfld, new FieldReference(_authentic.Name, _authentic.FieldType, _intermediate.MakeGenericType(_intermediate.GenericParameters)));
+                _initializer.Body.Emit(OpCodes.Stsfld, new FieldReference(_auxiliary.Name, _auxiliary.FieldType, _intermediate.MakeGenericType(_intermediate.GenericParameters)));
+
+                _initializer.Body.Emit(_primary.Relative());
+                _initializer.Body.Emit(OpCodes.Callvirt, Program.GetMethodHandle);
+                _initializer.Body.Emit(OpCodes.Stloc_0);
+                _initializer.Body.Emit(OpCodes.Ldloca_S, _variable);
+                _initializer.Body.Emit(OpCodes.Callvirt, Program.GetFunctionPointer);
+                _initializer.Body.Emit(OpCodes.Stsfld, new FieldReference(_pointer.Name, _pointer.FieldType, _intermediate.MakeGenericType(_intermediate.GenericParameters)));
 
                 //TODO : IOC of AOP !? What the? in fact it will be used to be able to inject on method on demand but a late as possible.
                 //Action<MethodBase> _update;
@@ -252,7 +410,7 @@ namespace Puresharp
             }
             _initializer.Body.Emit(OpCodes.Ret);
             _initializer.Body.OptimizeMacros();
-            return _field;
+            return _pointer;
         }
 
         static private FieldDefinition Metadata(this MethodDefinition method)
@@ -289,6 +447,7 @@ namespace Puresharp
 
         static private void Manage(this MethodDefinition method)
         {
+            Program.Include(method.Module.Assembly, typeof(Metadata).Assembly, typeof(Advice.IBoundary).Assembly);
             var _metadata = method.Metadata();
             var _machine = method.CustomAttributes.SingleOrDefault(_Attribute => _Attribute.AttributeType.Resolve() == method.Module.Import(typeof(AsyncStateMachineAttribute)).Resolve());
             var _authentic = method.Authentic();
@@ -323,7 +482,6 @@ namespace Puresharp
             method.Body.OptimizeMacros();
             if (_machine != null)
             {
-                Program.Confluence(method.Module.Assembly);
                 var _type = _machine.ConstructorArguments[0].Value as TypeDefinition;
 
                 //get from appdomain => factory of factory to define initial factory!
@@ -334,13 +492,13 @@ namespace Puresharp
                 var _boundary = _type.Field<Advice.IBoundary>("<Boundary>", FieldAttributes.Public);
                 _type.IsBeforeFieldInit = true;
                 var _intializer = _type.Initializer();
-                _intializer.Body.Emit(OpCodes.Newobj, Reflection.Metadata.Constructor(() => new Advice.Boundary.Factory())); //TODO Virtuoze => get data from appdomain to detect default boundary for method! if null => instantiate ABF
+                _intializer.Body.Emit(OpCodes.Newobj, Discovery.Metadata.Constructor(() => new Advice.Boundary.Factory())); //TODO Virtuoze => get data from appdomain to detect default boundary for method! if null => instantiate ABF
                 _intializer.Body.Emit(OpCodes.Stsfld, _factory.Relative());
                 _intializer.Body.Emit(OpCodes.Ret);
                 var _constructor = _type.Methods.Single(m => m.IsConstructor && !m.IsStatic);
                 _constructor.Body = new MethodBody(_constructor);
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
-                _constructor.Body.Emit(OpCodes.Call, Puresharp.Reflection.Metadata.Constructor(() => new object()));
+                _constructor.Body.Emit(OpCodes.Call, Discovery.Metadata.Constructor(() => new object()));
                 _constructor.Body.Emit(OpCodes.Ldarg_0);
                 _constructor.Body.Emit(OpCodes.Ldsfld, _constructor.Module.Import(_factory.Relative()));
                 _constructor.Body.Emit(OpCodes.Callvirt, Metadata<Advice.Boundary.IFactory>.Method(_Factory => _Factory.Create()));
@@ -403,7 +561,7 @@ namespace Puresharp
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldfld, _boundary.Relative()));
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldtoken, _action));
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldtoken, _action.DeclaringType));
-                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Call, _move.Module.Import(Reflection.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value))))); //TODO Virtuoze => cache it!
+                                _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Call, _move.Module.Import(Discovery.Metadata.Method(() => MethodInfo.GetMethodFromHandle(Argument<RuntimeMethodHandle>.Value, Argument<RuntimeTypeHandle>.Value))))); //TODO Virtuoze => cache it!
                                 _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Ldloca, _task));
                                 if (_action.ReturnType.Resolve() == _move.Module.Import(typeof(Task)).Resolve()) { _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<MethodInfo>.Value, ref Argument<Task>.Value))))); }
                                 else { _move.Body.Instructions.Insert(_offset++, Instruction.Create(OpCodes.Callvirt, _move.Module.Import(Metadata<Advice.IBoundary>.Method(_Boundary => _Boundary.Await(Argument<MethodInfo>.Value, ref Argument<Task<object>>.Value)).GetGenericMethodDefinition()).MakeGenericMethod((_action.ReturnType as GenericInstanceType).GenericArguments[0]))); }

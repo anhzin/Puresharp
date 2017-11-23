@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Puresharp;
-using Puresharp.Reflection;
+using Puresharp.Discovery;
 
 using FieldInfo = System.Reflection.FieldInfo;
 using MethodBase = System.Reflection.MethodBase;

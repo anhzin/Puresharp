@@ -31,17 +31,30 @@ namespace Puresharp.Confluence
                     return string.Concat("<", method.IsConstructor ? method.DeclaringType.Name : method.Name, method.GetGenericArguments().Length > 0 ? string.Concat("<", method.GetGenericArguments().Length, ">") : string.Empty, method.GetParameters().Length > 0 ? string.Concat("<", string.Concat(method.GetParameters().Select(_parameter => Identity(_parameter.ParameterType))), ">") : string.Empty, ">");
                 }
 
-                static private FieldInfo Pointer(MethodBase method)
+                static private MethodInfo Update(MethodBase method)
                 {
                     foreach (var _instruction in method.Body())
                     {
                         if (_instruction.Code == OpCodes.Ldsfld)
                         {
                             var _field = _instruction.Value as FieldInfo;
-                            if (_field.Name == "<Pointer>") { return _field; }
+                            if (_field.Name == "<Pointer>") { return _field.DeclaringType.GetMethod("<Update>", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly); }
                         }
                     }
-                    throw new NotSupportedException(string.Format($"type '{ method.DeclaringType.AssemblyQualifiedName }' is not managed by CNeptune and cannot be supervised."));
+                    return null;
+                }
+
+                static private FieldInfo Authentic(MethodBase method)
+                {
+                    foreach (var _instruction in method.Body())
+                    {
+                        if (_instruction.Code == OpCodes.Ldsfld)
+                        {
+                            var _field = _instruction.Value as FieldInfo;
+                            if (_field.Name == "<Pointer>") { return _field.DeclaringType.GetField("<Authentic>", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly); }
+                        }
+                    }
+                    return null;
                 }
 
                 public readonly Type Type;
@@ -51,7 +64,7 @@ namespace Puresharp.Confluence
                 private readonly LinkedList<MethodInfo> m_Sequence;
                 private readonly Dictionary<Aspect, Activity> m_Dictionary;
                 private readonly IntPtr m_Pointer;
-                private readonly FieldInfo m_Field;
+                private readonly Action<IntPtr> m_Update;
                 private readonly FieldInfo m_Boundary;
 
                 internal Entry(Type type, MethodBase method, Activity activity)
@@ -61,8 +74,10 @@ namespace Puresharp.Confluence
                     this.Activity = activity;
                     this.m_Aspectization = new LinkedList<Aspect>();
                     this.m_Dictionary = new Dictionary<Aspect, Activity>();
-                    this.m_Field = Aspect.Directory.Entry.Pointer(method);
-                    this.m_Pointer = (IntPtr)this.m_Field.GetValue(null);
+                    var _update = Aspect.Directory.Entry.Update(method);
+                    if (_update == null) { throw new NotSupportedException(string.Format($"Method '{ method.Name }' declared in type '{ method.DeclaringType.AssemblyQualifiedName }' is not managed by Puresharp and cannot be supervised. Please install Puresharp nuget package on '{ method.DeclaringType.Assembly.FullName }' to make it supervisable.")); }
+                    this.m_Update = Delegate.CreateDelegate(Metadata<Action<IntPtr>>.Type, _update) as Action<IntPtr>;
+                    this.m_Pointer = (IntPtr)Aspect.Directory.Entry.Authentic(method).GetValue(null);
                     this.m_Sequence = new LinkedList<MethodInfo>();
                     var _attribute = method.Attribute<AsyncStateMachineAttribute>();
                     if (_attribute == null) { return; }
@@ -83,7 +98,7 @@ namespace Puresharp.Confluence
                             this.m_Sequence.AddLast(_method);
                             if (_method != null) { _pointer = _method.GetFunctionPointer(); }
                         }
-                        this.m_Field.SetValue(null, _pointer);
+                        this.m_Update(_pointer);
                     }
                     else
                     {

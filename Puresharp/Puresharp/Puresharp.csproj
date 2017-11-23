@@ -72,6 +72,7 @@
     <Compile Include="Mono\Cecil\Cil\Branch.cs" />
     <Compile Include="Mono\Cecil\Cil\Branch.Scope.cs" />
     <Compile Include="Mono\Cecil\Cil\Copy.cs" />
+    <Compile Include="Mono\Cecil\Cil\Lock.cs" />
     <Compile Include="Mono\Cecil\__AssemblyDefinition.cs" />
     <Compile Include="Mono\Cecil\__FieldDefinition.cs" />
     <Compile Include="Mono\Cecil\__GenericParameter.cs" />
@@ -97,9 +98,9 @@
       <Project>{ee0e7006-e206-454a-a872-d770300b9df7}</Project>
       <Name>Puresharp.Confluence</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Puresharp.Reflection\Puresharp.Reflection.csproj">
-      <Project>{237a9612-9bf5-4bcc-8eb4-ea45654defc1}</Project>
-      <Name>Puresharp.Reflection</Name>
+    <ProjectReference Include="..\Puresharp.Discovery\Puresharp.Discovery.csproj">
+      <Project>{6e2e94bf-8e3f-48a8-a990-270bfb3f480c}</Project>
+      <Name>Puresharp.Discovery</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

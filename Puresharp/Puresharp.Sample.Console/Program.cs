@@ -30,50 +30,57 @@ namespace Puresharp.Sample.Console
     {
         public void Argument<T>(ParameterInfo parameter, ref T value)
         {
+            throw new NotImplementedException();
+        }
+
+        public void Await(MethodInfo method, ref Task task)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Await<T>(MethodInfo method, ref Task<T> task)
+        {
+            throw new NotImplementedException();
         }
 
         public void Begin()
         {
+            throw new NotImplementedException();
         }
 
         public void Continue()
         {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
+            throw new NotImplementedException();
         }
 
         public void Instance<T>(T instance)
         {
-        }
-
-        public void Method(MethodBase method, ParameterInfo[] signature)
-        {
+            throw new NotImplementedException();
         }
 
         public void Return()
         {
+            throw new NotImplementedException();
         }
 
         public void Return<T>(ref T value)
         {
+            throw new NotImplementedException();
         }
 
         public void Throw(ref Exception exception)
         {
+            throw new NotImplementedException();
         }
 
         public void Throw<T>(ref Exception exception, ref T value)
         {
-        }
-
-        public void Await(MethodInfo method, Task task)
-        {
-        }
-
-        public void Await<T>(MethodInfo method, Task<T> task)
-        {
+            throw new NotImplementedException();
         }
     }
 

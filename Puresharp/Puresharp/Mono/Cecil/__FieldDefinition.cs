@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Mono;
 using Puresharp;
-using Puresharp.Reflection;
+using Puresharp.Discovery;
 
 namespace Mono.Cecil
 {
@@ -31,6 +31,12 @@ namespace Mono.Cecil
         {
             if (field.DeclaringType.GenericParameters.Count == 0) { return field; }
             return new FieldReference(field.Name, field.DeclaringType.Module.Import(field.FieldType), field.DeclaringType.MakeGenericType(field.DeclaringType.GenericParameters));
+        }
+
+        static public MethodReference Relative(this MethodDefinition method)
+        {
+            if (method.DeclaringType.GenericParameters.Count == 0) { return method; }
+            return new MethodReference(method.Name, method.DeclaringType.Module.Import(method.ReturnType), method.DeclaringType.MakeGenericType(method.DeclaringType.GenericParameters));
         }
     }
 }

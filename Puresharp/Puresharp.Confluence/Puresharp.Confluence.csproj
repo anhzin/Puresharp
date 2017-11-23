@@ -112,7 +112,6 @@
     <Compile Include="Data\Data.Enumerable.Enumerator.cs" />
     <Compile Include="Data\Data.Map.cs" />
     <Compile Include="Extension.cs" />
-    <Compile Include="Neptune.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxy\Proxy.cs" />
     <Compile Include="Argument.cs" />
