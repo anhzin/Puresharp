@@ -29,12 +29,14 @@ namespace Puresharp.SimpleInjectorBattle
                 _container.Register<ICalculator, Calculator>(SimpleInjector.Lifestyle.Transient);
                 return () => _container.GetInstance<ICalculator>();
             });
+            //TODO : change to test new Puresharp DI recast
             _benchmark.Add("Puresharp", () =>
             {
                 var _container = new Puresharp.Composition.Container();
                 _container.Add<ICalculator>(() => new Calculator(), Puresharp.Composition.Lifetime.Volatile);
                 return () => _container.Enumerable<ICalculator>();
             });
+            //TODO : change to test MEF2
             _benchmark.Add("MEF", () =>
             {
                 var _container = new System.Composition.Hosting.ContainerConfiguration().WithAssembly(typeof(ICalculator).Assembly).CreateContainer();
